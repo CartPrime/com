@@ -219,7 +219,7 @@
             });
 
             if (formValues) {
-                update(ref(db, 'users/' + userMob + '/fullAddress'), formValues)
+                update(ref(db, 'users/' + userMob + '/address'), formValues)
                 .then(() => Swal.fire('Success', 'Address updated successfully!', 'success'));
             }
         };
