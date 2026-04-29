@@ -38,30 +38,19 @@
             padding: 6px 15px; border-radius: 5px; font-weight: bold; display: none; 
         }
 
-        /* Hero / Discount Banner Style */
+        /* Hero Banner Style */
         .hero-banner {
-            width: 90%;
-            margin: 20px auto;
-            min-height: 250px;
+            width: 90%; margin: 20px auto; min-height: 250px;
             background: linear-gradient(45deg, #1a1a2e, #16213e);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 50px;
-            color: white;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 15px; display: flex; align-items: center;
+            justify-content: space-between; padding: 20px 50px; color: white;
+            overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         .hero-content { flex: 1; }
         .hero-content h1 { font-size: 32px; color: #ff9900; margin-bottom: 10px; }
         .hero-content p { font-size: 18px; opacity: 0.9; margin-bottom: 15px; }
         .hero-image { flex: 1; text-align: right; }
-        .hero-image img {
-            height: 220px;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
-            transition: 0.5s;
-        }
+        .hero-image img { height: 220px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3)); transition: 0.5s; }
         .hero-banner:hover .hero-image img { transform: scale(1.05) rotate(-5deg); }
 
         /* Product Grid */
@@ -73,7 +62,6 @@
         .product-card h3 { font-size: 17px; color: #333; margin-bottom: 8px; }
         .product-card p { color: #28a745; font-weight: bold; font-size: 19px; margin-bottom: 12px; }
         .buy-btn { background: #ff9900; color: #1a1a2e; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
-        
         .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 10px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; }
 
         @media (max-width: 768px) {
@@ -139,6 +127,9 @@
             const profileIcon = document.getElementById('userProfileIcon');
             const adminBtn = document.getElementById('adminBtn');
 
+            // തുടക്കത്തിൽ തന്നെ അഡ്മിൻ ബട്ടൺ ഹൈഡ് ചെയ്യുന്നു
+            adminBtn.style.display = 'none';
+
             if (role) {
                 loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
                 loginLink.href = "#";
@@ -152,7 +143,11 @@
                 };
 
                 profileIcon.style.display = 'block';
-                if(role === 'admin') adminBtn.style.display = 'inline-block';
+
+                // റോൾ 'admin' ആണെങ്കിൽ മാത്രം ബട്ടൺ കാണിക്കും
+                if (role === 'admin') {
+                    adminBtn.style.display = 'inline-block';
+                }
 
                 onValue(ref(db, 'users/' + userMob), (snapshot) => {
                     const userData = snapshot.val();
@@ -163,6 +158,7 @@
             } else {
                 loginLink.style.display = 'inline-block';
                 profileIcon.style.display = 'none';
+                adminBtn.style.display = 'none';
             }
         });
 
@@ -174,7 +170,7 @@
 
             if (data) {
                 Object.values(data).forEach(item => {
-                    // ഇവിടെ മാറ്റം വരുത്തി: String ആയാലും Boolean ആയാലും 'true' എന്ന് പരിശോധിക്കും
+                    // Home Page ഫിൽട്ടറിംഗ് കൃത്യമായി നടക്കാൻ String check ഉപയോഗിക്കുന്നു
                     if (String(item.showOnHome) === "true") {
                         hasFeatured = true;
                         const firstImg = (item.img || item.image || "").split(',')[0].trim();
