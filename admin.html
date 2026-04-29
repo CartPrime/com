@@ -302,19 +302,26 @@
         });
     };
 
-    onValue(ref(db, 'users'), s => {
+   onValue(ref(db, 'users'), s => {
         const ul = document.getElementById('userList'); ul.innerHTML = "";
         s.forEach(c => { 
             const u = c.val(); const firebaseKey = c.key; 
             const displayMobile = u.mob || u.mobile || u.email || firebaseKey;
             
-            // അഡ്രസ്സ് കോളം വൃത്തിയാക്കുന്നു
-            let formattedAddress = u.address || 'No Address';
-            if(formattedAddress.includes(':')) {
-                formattedAddress = formattedAddress.replace(':', ':<br>');
+            // അഡ്രസ്സ് ഫീൽഡിൽ 'Full Address' എന്ന് വരുന്നത് വൃത്തിയാക്കുന്നു
+            let addr = u.fulladdress || 'No Address';
+            
+            // ഇതിൽ ':' ഉണ്ടെങ്കിൽ അത് കഴിഞ്ഞുള്ള ഭാഗം അടുത്ത വരിയിൽ വരാൻ
+            if(addr.includes(':')) {
+                addr = addr.replace(':', ':<br>');
             }
 
-            ul.innerHTML += `<tr><td><b>${u.name || 'User'}</b></td><td style="font-size: 12px;">${displayMobile}</td><td><div class="user-addr-box">${formattedAddress}</div></td><td style="font-size: 12px;">${u.lastLogin || 'N/A'}</td></tr>`; 
+            ul.innerHTML += `<tr>
+                <td><b>${u.name || 'User'}</b></td>
+                <td style="font-size: 12px;">${displayMobile}</td>
+                <td><div class="user-addr-box" style="white-space: pre-line; line-height:1.5;">${addr}</div></td>
+                <td style="font-size: 12px;">${u.lastLogin || 'N/A'}</td>
+            </tr>`; 
         });
     });
 </script>
