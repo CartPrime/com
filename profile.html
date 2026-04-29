@@ -160,7 +160,7 @@
                 const displayArea = document.getElementById('addressDisplayArea');
                 const noMsg = document.getElementById('noAddressMsg');
 
-                if (data.fullAddress) {
+                if (data.address) {
                     displayArea.style.display = 'block';
                     noMsg.style.display = 'none';
                     document.getElementById('displayStreet').innerText = data.fullAddress.street || "";
