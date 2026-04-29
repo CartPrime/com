@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Products - ShopKart</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f6; }
+
+        header {
+            background-color: #1a1a2e; padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-size: 26px; font-weight: 800; color: #ffffff; text-decoration: none; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 20px; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+        
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; position: relative; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .card img { width: 100%; height: 180px; object-fit: cover; border-radius: 5px; }
+        .card h3 { margin: 10px 0; font-size: 17px; color: #333; }
+        .price { color: #B12704; font-size: 19px; font-weight: bold; margin-bottom: 10px; }
+        
+        /* Out of Stock Style */
+        .out-of-stock-badge { position: absolute; top: 10px; left: 10px; background: #dc3545; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; z-index: 10; }
+        .card.oos { opacity: 0.7; }
+        .card.oos img { filter: grayscale(100%); }
+        .btnh:hover{background-color: transparent; transition: 0.5s;}
+        .btn { background: #ffd814; border: 1px solid #fcd200; width: 100%; padding: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .btn:disabled { background: #95a5a6; border-color: #7f8c8d; cursor: not-allowed; color: white; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">CartPrime!</a>
+        <nav class="nav-links">
+            <a href="index.html"><button class="btnh" style="color:#000000; font-weight:bold; background-color: #ff9900; border-radius: 5px; width: 90px; height: 35px; font-family: system-ui; border: none;" >Home</button></a>
+            
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2 style="margin-bottom: 25px;">Our Collection</h2>
+        <div class="grid" id="allProductGrid"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+            authDomain: "yoush0pcart.firebaseapp.com",
+            projectId: "yoush0pcart",
+            storageBucket: "yoush0pcart.firebasestorage.app",
+            messagingSenderId: "519708489514",
+            appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const productsRef = ref(db, 'products');
+
+        onValue(productsRef, (snapshot) => {
+            const grid = document.getElementById('allProductGrid');
+            grid.innerHTML = '';
+            const data = snapshot.val();
+
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    
+                    //  Stock Status 
+                    const isOutOfStock = item.inStock === false;
+
+                    // FIRST IMAGE TAKE (item.img  item.image)
+                    const imageSource = item.img ? item.img.split(',')[0] : (item.image || 'placeholder.jpg');
+
+                    grid.innerHTML += `
+                        <div class="card ${isOutOfStock ? 'oos' : ''}">
+                            ${isOutOfStock ? '<div class="out-of-stock-badge">Out of Stock</div>' : ''}
+                            <img src="${imageSource}" alt="${item.name}">
+                            <h3>${item.name}</h3>
+                            <p class="price">₹${item.price}</p>
+                            <button class="btn" 
+                                ${isOutOfStock ? 'disabled' : `onclick="location.href='product-details.html?id=${key}'"`}>
+                                ${isOutOfStock ? 'Currently Unavailable' : 'View Product'}
+                            </button>
+                        </div>`;
+                });
+            } else {
+                grid.innerHTML = '<h3>No products available.</h3>';
+            }
+        });
+    </script>
+</body>
+</html>

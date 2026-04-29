@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopKart - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f8f9fa; }
+
+        /* Navbar Styles */
+        nav {
+            background-color: #1a1a2e; padding: 10px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; color: white; height: 70px;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #ffffff; }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 15px; font-weight: 500; }
+
+        /* Profile Icon Style */
+        .user-profile-nav {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid #ff9900; overflow: hidden;
+            cursor: pointer; display: none; /* Initially hidden */
+            background-color: #333;
+        }
+        .user-profile-nav img { width: 100%; height: 100%; object-fit: cover; }
+        
+        #loginLink { 
+            border: 1px solid #ffffff; padding: 6px 18px; 
+            border-radius: 20px; color: #ffffff; font-weight: 600;
+        }
+
+        #adminBtn { 
+            background: #ffffff; color: #1a1a2e !important; 
+            padding: 6px 15px; border-radius: 5px; font-weight: bold; display: none; 
+        }
+
+        /* Product Grid */
+        .container { padding: 40px 5%; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+        .product-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; transition: 0.3s; cursor: pointer; position: relative; }
+        .product-card:hover { transform: translateY(-5px); }
+        .product-card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
+        .product-card h3 { font-size: 17px; color: #333; margin-bottom: 8px; }
+        .product-card p { color: #28a745; font-weight: bold; font-size: 19px; margin-bottom: 12px; }
+        .buy-btn { background: #ff9900; color: #1a1a2e; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+        
+        /* Out of Stock Style */
+        .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 10px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">CartPrime!</div>
+        <div class="nav-links">
+            <a href="products.html">Products</a>
+            <a href="admin.html" id="adminBtn">Admin</a>
+            
+            <a href="login.html" id="loginLink">Login</a>
+
+            <div class="user-profile-nav" id="userProfileIcon" onclick="window.location.href='profile.html'">
+                <img id="navProfilePic" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h2 style="margin-bottom: 30px;">Featured Products</h2>
+        <div class="product-grid" id="productGrid">
+            <p>Loading products...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+            authDomain: "yoush0pcart.firebaseapp.com",
+            projectId: "yoush0pcart",
+            storageBucket: "yoush0pcart.firebasestorage.app",
+            messagingSenderId: "519708489514",
+            appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Auth & Navbar Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem('userRole');
+            const userMob = localStorage.getItem('userMob');
+            const loginLink = document.getElementById('loginLink');
+            const profileIcon = document.getElementById('userProfileIcon');
+            const adminBtn = document.getElementById('adminBtn');
+
+            if (role) {
+                loginLink.style.display = 'none';
+                profileIcon.style.display = 'block';
+                if(role === 'admin') adminBtn.style.display = 'inline-block';
+
+                onValue(ref(db, 'users/' + userMob), (snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData && userData.profilePic) {
+                        document.getElementById('navProfilePic').src = userData.profilePic;
+                    }
+                });
+            } else {
+                loginLink.style.display = 'inline-block';
+                profileIcon.style.display = 'none';
+            }
+        });
+
+        // Fetch Products with Stock Logic
+        const productGrid = document.getElementById('productGrid');
+        onValue(ref(db, 'products'), (snapshot) => {
+            productGrid.innerHTML = '';
+            const data = snapshot.val();
+            if (data) {
+                Object.values(data).forEach(item => {
+                    const firstImg = (item.img || item.image || "").split(',')[0].trim();
+                    const safeName = item.name.replace(/'/g, "\\'");
+                    
+                    // സ്റ്റോക്ക് ചെക്ക് ചെയ്യുന്നു
+                    const isAvailable = item.inStock !== false;
+
+                    // ബട്ടൺ സെറ്റ് ചെയ്യുന്നു
+                    const actionButton = isAvailable 
+                        ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
+                        : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
+
+                    productGrid.innerHTML += `
+                        <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
+                            <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')">
+                            <h3>${item.name}</h3>
+                            <p>₹${item.price}</p>
+                            ${actionButton}
+                        </div>
+                    `;
+                });
+            } else {
+                productGrid.innerHTML = '<p>No products found.</p>';
+            }
+        });
+
+        window.viewProduct = (name, price, img, desc) => {
+            localStorage.setItem('viewProdName', name);
+            localStorage.setItem('viewProdPrice', price);
+            localStorage.setItem('viewProdImg', img);
+            localStorage.setItem('viewProdDesc', desc);
+            window.location.href = 'product-details.html';
+        };
+
+        window.goToCheckout = (name, price, img) => {
+            if(!localStorage.getItem('userRole')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            localStorage.setItem('tempProdName', name);
+            localStorage.setItem('tempProdPrice', price);
+            localStorage.setItem('tempProdImg', img);
+            window.location.href = 'checkout.html';
+        };
+    </script>
+</body>
+</html>

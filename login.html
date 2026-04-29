@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopKart - Secure Auth</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: white; width: 100%; max-width: 450px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
+        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: bold; color: #888; }
+        .tab.active { color: #ff9900; border-bottom: 3px solid #ff9900; }
+        .form-box { display: none; }
+        .form-box.active { display: block; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: #555; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .btn { width: 100%; padding: 13px; background: #ff9900; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 16px; color: white; }
+        
+        /* Premium Alert Styling Customization */
+        .swal2-popup { border-radius: 20px !important; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('login')">Login</div>
+        <div class="tab" onclick="switchTab('register')">Register</div>
+    </div>
+
+    <div id="loginBox" class="form-box active">
+        <div class="input-group">
+            <label>Mobile</label>
+            <input type="text" id="lUser" placeholder="Mobile">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="lPass" placeholder="Enter password">
+        </div>
+        <button class="btn" onclick="login()">Login</button>
+    </div>
+
+    <div id="registerBox" class="form-box">
+        <div class="input-group"><label>Shop Name</label><input type="text" id="rName"></div>
+        <div class="input-group"><label>Mobile Number</label><input type="tel" id="rMob"></div>
+        <div class="input-group"><label>House No./Building</label><input type="text" id="rHouse"></div>
+        <div class="input-group"><label>Area/City</label><input type="text" id="rArea"></div>
+        <div style="display:flex; gap:10px;">
+            <div class="input-group" style="flex:1;"><label>Pincode</label><input type="number" id="rPin"></div>
+            <div class="input-group" style="flex:1;"><label>State</label><input type="text" id="rState" value="Kerala"></div>
+        </div>
+        <div class="input-group"><label>Set Password</label><input type="password" id="rPass"></div>
+        <button class="btn" onclick="register()">Register Shop</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+        authDomain: "yoush0pcart.firebaseapp.com",
+        projectId: "yoush0pcart",
+        storageBucket: "yoush0pcart.firebasestorage.app",
+        messagingSenderId: "519708489514",
+        appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    // --- Premium Toast/Alert Function ---
+    const showAlert = (title, text, icon) => {
+        return Swal.fire({
+            title: title,
+            text: text,
+            icon: icon,
+            confirmButtonColor: '#ff9900',
+            timer: icon === 'success' ? 2000 : null,
+            timerProgressBar: icon === 'success',
+            showConfirmButton: icon !== 'success',
+        });
+    };
+
+    // --- Login Function ---
+    window.login = async () => {
+        const userVal = document.getElementById('lUser').value.trim();
+        const passVal = document.getElementById('lPass').value.trim();
+
+        if(!userVal || !passVal) {
+            showAlert("Required", "Please fill all fields", "warning");
+            return;
+        }
+
+        if(userVal.includes('@')) {
+            try {
+                await signInWithEmailAndPassword(auth, userVal, passVal);
+                localStorage.setItem('userRole', 'admin');
+                showAlert("Welcome!", "Welcome Admin!", "success").then(() => {
+                    window.location.href = 'index.html';
+                });
+                return;
+            } catch (error) {
+                showAlert("Error", "Admin Login Failed: " + error.message, "error");
+                return;
+            }
+        }
+
+        const dbRef = ref(db);
+        get(child(dbRef, `users/${userVal}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const user = snapshot.val();
+                if(user.pass === passVal) {
+                    const now = new Date().toLocaleString('en-IN'); 
+
+                    update(ref(db, 'users/' + userVal), { 
+                        lastLogin: now 
+                    }).then(() => {
+                        localStorage.setItem('userRole', 'user');
+                        localStorage.setItem('userMob', userVal); 
+                        showAlert("Success!", "Login Successful!", "success").then(() => {
+                            window.location.href = 'index.html';
+                        });
+                    });
+                } else {
+                    showAlert("Failed", "Wrong Password!", "error");
+                }
+            } else {
+                showAlert("No Account", "No account found with this number!", "info");
+            }
+        });
+    };
+
+    // --- Registration Function ---
+    window.register = async () => {
+        const name = document.getElementById('rName').value.trim();
+        const mob = document.getElementById('rMob').value.trim();
+        const house = document.getElementById('rHouse').value.trim();
+        const area = document.getElementById('rArea').value.trim();
+        const pin = document.getElementById('rPin').value.trim();
+        const pass = document.getElementById('rPass').value.trim();
+
+        if (name && mob && pass) {
+            get(child(ref(db), `users/${mob}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    showAlert("Already User", "Mobile Number already registered!", "warning");
+                } else {
+                    const address = `${house}, ${area}, Pin: ${pin}`;
+                    set(ref(db, 'users/' + mob), { 
+                        name, mob, address, pass, lastLogin: "First Time" 
+                    }).then(() => {
+                        showAlert("Congratulations!", "Registration Successful!", "success").then(() => {
+                            window.location.reload();
+                        });
+                    });
+                }
+            });
+        } else {
+            showAlert("Missing Details", "Please fill mandatory fields!", "warning");
+        }
+    };
+
+    window.switchTab = (t) => {
+        document.getElementById('loginBox').classList.toggle('active', t === 'login');
+        document.getElementById('registerBox').classList.toggle('active', t === 'register');
+        const tabs = document.getElementsByClassName('tab');
+        tabs[0].classList.toggle('active', t === 'login');
+        tabs[1].classList.toggle('active', t === 'register');
+    };
+</script>
+</body>
+</html>

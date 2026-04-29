@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickStore - Track My Orders</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f4f7f6; color: #333; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #1a1a2e; }
+        .header p { color: #666; font-size: 14px; }
+
+        .search-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; gap: 10px; margin-bottom: 25px; }
+        .search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; }
+        .search-box button { background: #ff9900; color: #1a1a2e; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; margin-left: -6px; font-weight: bold; }
+
+        .order-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid #ff9900; }
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-shipped { background: #1a1a2e; color: #ff9900; } /* Styling for Shipped status */
+        .status-rejected { background: #f8d7da; color: #721c24; }
+
+        .order-details p { font-size: 14px; margin-bottom: 5px; color: #555; }
+        
+        /* Tracking Section Style */
+        .tracking-box { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 15px; border: 1px dashed #ff9900; }
+        .track-link { color: #1a73e8; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+
+        .cancel-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 10px; width: 100%; transition: 0.3s; }
+        .cancel-btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .no-orders { text-align: center; padding: 40px; color: #999; }
+        .nav-home { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #1a1a2e; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📦 Track My Orders</h1>
+        <p>ENTER MOBILE NUMBER</p>
+    </div>
+
+    <div class="search-box">
+        <input type="number" id="mobileSearch" placeholder="Enter Mobile Number">
+        <button onclick="fetchOrders()">Check</button>
+    </div>
+
+    <div id="orderContainer">
+        <div class="no-orders">Enter Your Mobile Number</div>
+    </div>
+
+    <a href="index.html" class="nav-home">← Back to Home</a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+        authDomain: "yoush0pcart.firebaseapp.com",
+        projectId: "yoush0pcart",
+        storageBucket: "yoush0pcart.firebasestorage.app",
+        messagingSenderId: "519708489514",
+        appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.fetchOrders = () => {
+        const mobile = document.getElementById('mobileSearch').value;
+        if(!mobile) return Swal.fire("Error", "Please enter mobile number", "error");
+
+        const container = document.getElementById('orderContainer');
+        container.innerHTML = "<p style='text-align:center;'>Searching...</p>";
+
+        onValue(ref(db, 'orders'), snap => {
+            container.innerHTML = "";
+            let found = false;
+
+            snap.forEach(child => {
+                const o = child.val();
+                const id = child.key;
+
+                if(o.mobile == mobile) {
+                    found = true;
+                    const currentStatus = o.status || 'Pending';
+                    const statusClass = currentStatus === 'Confirmed' ? 'status-confirmed' : 
+                                      (currentStatus === 'Rejected' ? 'status-rejected' : 
+                                      (currentStatus === 'Shipped' ? 'status-shipped' : 'status-pending'));
+                    
+                    const canCancel = (currentStatus !== 'Confirmed' && currentStatus !== 'Rejected' && currentStatus !== 'Shipped');
+
+                    // Traking area
+                    const trackingSection = o.trackingID ? `
+                        <div class="tracking-box">
+                            <p style="font-size:12px; color:#666;">Tracking ID: <b>${o.trackingID}</b></p>
+                            <a href="https://www.delhivery.com/track/pkg-detail?waybill=${o.trackingID}" target="_blank" class="track-link">
+                                <i class="fas fa-truck"></i> Track Courier Now
+                            </a>
+                        </div>
+                    ` : '';
+
+                    container.innerHTML += `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <strong>${o.product}</strong>
+                                <span class="status-badge ${statusClass}">${currentStatus}</span>
+                            </div>
+                            <div class="order-details">
+                                <p>Price: ₹${o.price}</p>
+                                <p>Payment: ${o.payment}</p>
+                                ${o.rejectReason ? `<p style="color:red;"><b>Reason:</b> ${o.rejectReason}</p>` : ''}
+                                ${trackingSection}
+                            </div>
+                            ${canCancel ? `<button class="cancel-btn" onclick="cancelOrder('${id}')">Cancel Order</button>` : ''}
+                        </div>
+                    `;
+                }
+            });
+
+            if(!found) {
+                container.innerHTML = "<div class='no-orders'>THIS NUMBER ORDER NOT FOUND</div>";
+            }
+        });
+    };
+
+    window.cancelOrder = (id) => {
+        Swal.fire({
+            title: 'Cancel Order?',
+            text: "ORDER CENCEL NOW?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Yes, Cancel It!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                remove(ref(db, 'orders/' + id)).then(() => {
+                        Swal.fire('Cancelled!', 'ARE YOU SURE', 'success');
+                    });
+            }
+        });
+    };
+</script>
+
+</body>
+</html>

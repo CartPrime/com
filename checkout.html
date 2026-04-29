@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Payment</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .checkout-box { background: white; width: 100%; max-width: 480px; padding: 25px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        h2 { margin-bottom: 20px; border-bottom: 2px solid #ff9900; padding-bottom: 10px; color: #1a1a2e; }
+        
+        .item-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        .item-info img { width: 70px; height: 70px; object-fit: contain; border-radius: 8px; }
+
+        /* Address Section Styling */
+        .address-section { background: #fff9f0; padding: 15px; border-radius: 10px; border-left: 4px solid #ff9900; margin-bottom: 20px; position: relative; }
+        .address-section h4 { font-size: 13px; color: #ff9900; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
+        .change-addr-btn { position: absolute; top: 15px; right: 15px; font-size: 11px; color: #ff9900; text-decoration: none; font-weight: bold; }
+
+        .payment-methods { margin: 20px 0; border-top: 1px solid #eee; padding-top: 15px; }
+        .pay-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 10px; transition: 0.3s; }
+        .pay-option:hover { border-color: #ff9900; background: #fffcf5; }
+        .pay-option input { accent-color: #ff9900; transform: scale(1.2); }
+
+        .confirm-btn { width: 100%; padding: 15px; background: #ff9900; color: #1a1a2e; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); transition: 0.3s; }
+        .confirm-btn:hover { background: #e68a00; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="checkout-box">
+    <h2>Complete Order</h2>
+    
+    <div class="item-info">
+        <img id="displayImg" src="" alt="Product">
+        <div>
+            <h3 id="displayName">Loading...</h3>
+            <p style="color: #28a745; font-weight: bold; font-size: 18px;">₹<span id="displayPrice">0</span></p>
+        </div>
+    </div>
+
+    <div class="address-section">
+        <a href="profile.html" class="change-addr-btn">CHANGE</a>
+        <h4>Delivery to:</h4>
+        <p id="userNameDisplay" style="font-weight: bold; font-size: 15px; color: #333;">Loading...</p>
+        <p id="userAddressDisplay" style="font-size: 13px; color: #666; margin-top: 4px; line-height: 1.4;">Fetching your address...</p>
+    </div>
+
+    <div class="payment-methods">
+        <h4 style="margin-bottom: 12px; font-size: 15px; color: #444;">Select Payment Method:</h4>
+        <label class="pay-option">
+            <input type="radio" name="payMethod" value="COD" checked> Cash on Delivery (COD)
+        </label>
+        <label class="pay-option">
+            <input type="radio" name="payMethod" value="UPI"> UPI (G-Pay / PhonePe / Paytm)
+        </label>
+    </div>
+
+    <input type="file" id="payScreenshot" accept="image/*" style="display: none;">
+
+    <button class="confirm-btn" onclick="handleOrder()">Confirm & Order</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+        authDomain: "yoush0pcart.firebaseapp.com",
+        projectId: "yoush0pcart",
+        storageBucket: "yoush0pcart.firebasestorage.app",
+        messagingSenderId: "519708489514",
+        appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const pName = localStorage.getItem('tempProdName');
+    const pPrice = localStorage.getItem('tempProdPrice');
+    const pImg = localStorage.getItem('tempProdImg');
+    const userMob = localStorage.getItem('userMob');
+
+    // Product UI Setup
+    if (pName) {
+        document.getElementById('displayName').innerText = pName;
+        document.getElementById('displayPrice').innerText = pPrice;
+        document.getElementById('displayImg').src = pImg;
+    }
+
+    // Fetch Address from Firebase (Profile)
+    onValue(ref(db, 'users/' + userMob), (snap) => {
+        const user = snap.val();
+        if (user) {
+            document.getElementById('userNameDisplay').innerText = user.name || "User";
+            if(user.address) {
+                document.getElementById('userAddressDisplay').innerText = user.address;
+            } else {
+                document.getElementById('userAddressDisplay').innerHTML = '<span style="color:red;">Address not found! Click CHANGE to add.</span>';
+            }
+        }
+    }, { onlyOnce: true });
+
+    window.handleOrder = () => {
+        const address = document.getElementById('userAddressDisplay').innerText;
+        
+        if (address.includes("not found")) {
+            Swal.fire('Wait!', 'Please add your address in profile first.', 'warning');
+            return;
+        }
+
+        const method = document.querySelector('input[name="payMethod"]:checked').value;
+
+        if (method === "UPI") {
+            const upiUrl = `upi://pay?pa=9495490980@fam&pn=CartPrime&am=${pPrice}&cu=INR`;
+            window.location.href = upiUrl;
+
+            setTimeout(() => {
+                Swal.fire({
+                    title: 'Upload Proof',
+                    text: 'Payment Screen Shot Upload And Order Place ',
+                    icon: 'image',
+                    showCancelButton: true,
+                    confirmButtonText: 'Select Image',
+                    confirmButtonColor: '#ff9900'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const fileInput = document.getElementById('payScreenshot');
+                        fileInput.click();
+                        fileInput.onchange = () => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => saveOrderToFirebase("Paid (UPI)", reader.result);
+                            reader.readAsDataURL(fileInput.files[0]);
+                        };
+                    }
+                });
+            }, 3000);
+        } else {
+            saveOrderToFirebase("Cash on Delivery", "No Screenshot");
+        }
+    };
+
+    function saveOrderToFirebase(payStatus, proofData) {
+        const orderInfo = {
+            product: pName,
+            price: pPrice,
+            customer: document.getElementById('userNameDisplay').innerText,
+            address: document.getElementById('userAddressDisplay').innerText,
+            mobile: userMob,
+            date: new Date().toLocaleString('en-IN'),
+            payment: payStatus,
+            proof: proofData,
+            status: "Order Placed"
+        };
+
+        push(ref(db, 'orders'), orderInfo).then(() => {
+            Swal.fire('Success!', 'Order Placed successfully', 'success')
+            .then(() => { window.location.href = 'index.html'; });
+        });
+    }
+</script>
+</body>
+</html>

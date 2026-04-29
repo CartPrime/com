@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickStore - Full Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f4f7f6; display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 250px; height: 100vh; background: #1a1a2e; color: white; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #ff9900; margin-bottom: 30px; text-align: center; }
+        .sidebar button { width: 100%; padding: 12px; background: transparent; border: none; color: white; text-align: left; cursor: pointer; font-size: 16px; border-radius: 5px; margin-bottom: 5px; transition: 0.3s; }
+        .sidebar button:hover, .sidebar button.active { background: #ff9900; color: #1a1a2e; font-weight: bold; }
+
+        .main-content { margin-left: 250px; padding: 30px; width: calc(100% - 250px); }
+        .top-nav { background: white; padding: 15px 30px; margin-bottom: 25px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-links a { text-decoration: none; color: #1a1a2e; font-weight: bold; margin-left: 20px; font-size: 14px; border: 1px solid #ddd; padding: 8px 15px; border-radius: 5px; }
+        .nav-links a:hover { background: #ff9900; border-color: #ff9900; }
+
+        .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .active-tab { display: block !important; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; color: #666; }
+        
+        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; color: white; margin-right: 5px; font-weight: bold; }
+        .edit-btn { background: #1a73e8; }
+        .reject-btn { background: #f39c12; color: white; }
+        .del-btn { background: #dc3545; }
+        .proof-btn { background: #6f42c1; color: white; }
+        .track-update-btn { background: #28a745; margin-top: 5px; }
+        .stock-btn { width: 100px; margin-bottom: 5px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        .btn-save { background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 10px; }
+
+        #proofGallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .proof-card { background: #fff; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .proof-card img { width: 100%; height: 160px; object-fit: cover; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+        .proof-actions { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+        .save-btn { text-decoration: none; background: #28a745; color: white; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .gallery-del-btn { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
+
+        .swal2-popup { border-radius: 15px !important; font-family: 'Segoe UI', sans-serif; }
+        .track-input { width: 120px; padding: 5px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>CartPrime</h2>
+    <button onclick="openTab('orders')" class="tablinks active" id="defaultOpen">📦 Orders</button>
+    <button onclick="openTab('addProduct')" class="tablinks">➕ Add Product</button>
+    <button onclick="openTab('manageProducts')" class="tablinks">⚙️ Manage Products</button>
+    <button onclick="openTab('users')" class="tablinks">👥 Users List</button>
+    <button onclick="openTab('paymentProofs')" class="tablinks">🖼️ Payment Proofs</button>
+</div>
+
+<div class="main-content">
+    <div class="top-nav">
+        <span style="font-weight: bold; color: #666;">Admin Dashboard</span>
+        <div class="nav-links">
+            <a href="index.html">🏠 Home</a>
+            <a href="products.html">🛍️ All Products</a>
+        </div>
+    </div>
+
+    <div id="orders" class="tab-content active-tab">
+        <h2>Customer Orders</h2>
+        <table>
+            <thead>
+                <tr><th>Customer</th><th>Product</th><th>Payment</th><th>Status</th><th>Tracking ID</th><th>Action</th></tr>
+            </thead>
+            <tbody id="orderList"></tbody>
+        </table>
+    </div>
+
+    <div id="addProduct" class="tab-content">
+        <h2 id="formTitle">Add New Product</h2>
+        <input type="hidden" id="editKey">
+        <div class="form-group"><label>Product Name</label><input type="text" id="pName"></div>
+        <div class="form-group"><label>Price (₹)</label><input type="number" id="pPrice"></div>
+        <div class="form-group" id="imageInputsContainer">
+            <label>Product Image Link</label>
+            <div style="display: flex; gap: 10px;"><input type="text" class="pImgInput" placeholder="Paste link here"><button type="button" onclick="addImageField()" style="padding:0 15px; background:#1a1a2e; border:none; color:white; border-radius:5px;">+</button></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="pDesc" rows="3"></textarea></div>
+        <button class="btn-save" id="submitBtn" onclick="saveProduct()">Upload Product</button>
+        <button id="cancelBtn" onclick="location.reload()" style="display:none; background:#ccc; border:none; padding:12px; border-radius:5px; width:100%; margin-top:10px; cursor:pointer;">Cancel Edit</button>
+    </div>
+
+    <div id="manageProducts" class="tab-content">
+        <h2>Manage Inventory</h2>
+        <table>
+            <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Stock Status</th><th>Action</th></tr></thead>
+            <tbody id="manageProductList"></tbody>
+        </table>
+    </div>
+
+    <div id="users" class="tab-content">
+        <h2>Registered Users</h2>
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Mobile</th><th>Address</th><th>Last Login</th></tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+    </div>
+
+    <div id="paymentProofs" class="tab-content">
+        <h2>Payment Screenshots</h2>
+        <div id="proofGallery"></div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, update, remove, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+        authDomain: "yoush0pcart.firebaseapp.com",
+        projectId: "yoush0pcart",
+        storageBucket: "yoush0pcart.firebasestorage.app",
+        messagingSenderId: "519708489514",
+        appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.openTab = (tabId) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.tablinks').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active-tab');
+        if(event) event.currentTarget.classList.add('active');
+    };
+
+    onValue(ref(db, 'orders'), snap => {
+        const ol = document.getElementById('orderList'); 
+        const gallery = document.getElementById('proofGallery');
+        ol.innerHTML = "";
+        gallery.innerHTML = "";
+        
+        snap.forEach(c => { 
+            const o = c.val(); 
+            const id = c.key;
+            const hasProof = (o.proof && o.proof !== "No Screenshot");
+            const proofBtn = hasProof ? `<button class="action-btn proof-btn" onclick="viewProof('${o.proof}')">🖼️ Proof</button>` : `<span style="font-size:11px; color:#999;">No Proof</span>`;
+            const reasonHTML = o.rejectReason ? `<br><small style="color:#dc3545;">Reason: ${o.rejectReason}</small>` : "";
+            const currentTracking = o.trackingID || "";
+
+            ol.innerHTML += `
+            <tr>
+                <td><b>${o.customer}</b><br><small>${o.mobile}</small></td>
+                <td>${o.product}<br><small>₹${o.price}</small></td>
+                <td>${o.payment}<br>${proofBtn}</td>
+                <td><span style="color:${o.status==='Confirmed'?'green':(o.status==='Rejected'?'red':(o.status==='Shipped'?'#28a745':'orange'))}">${o.status||'Pending'}</span>${reasonHTML}</td>
+                <td>
+                    <input type="text" id="track_${id}" class="track-input" placeholder="Tracking ID" value="${currentTracking}">
+                    <button class="action-btn track-update-btn" onclick="setTracking('${id}')">Save ID</button>
+                </td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="updateStatus('${id}', 'Confirmed')">Confirm</button>
+                    <button class="action-btn reject-btn" onclick="rejectOrder('${id}')">Reject</button>
+                    <button class="action-btn del-btn" onclick="deleteItem('orders/${id}')">Delete</button>
+                </td>
+            </tr>`;
+
+            if(hasProof) {
+                gallery.innerHTML += `
+                    <div class="proof-card">
+                        <img src="${o.proof}" onclick="viewProof('${o.proof}')">
+                        <p style="font-size:12px; font-weight:bold;">${o.customer}</p>
+                        <p style="font-size:11px; color:#666;">₹${o.price}</p>
+                        <div class="proof-actions">
+                            <a href="${o.proof}" target="_blank" download="payment_${o.customer}" class="save-btn">📥 Save</a>
+                            <button onclick="deleteItem('orders/${id}')" class="gallery-del-btn">🗑️ Delete</button>
+                        </div>
+                    </div>`;
+            }
+        });
+    });
+
+    window.setTracking = (id) => {
+        const trk = document.getElementById(`track_${id}`).value;
+        if(!trk) return Swal.fire('Error', 'Please enter a Tracking ID', 'error');
+        update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' })
+        .then(() => Swal.fire('Updated!', 'Tracking ID saved and status changed to Shipped.', 'success'));
+    };
+
+    onValue(ref(db, 'users'), s => {
+        const ul = document.getElementById('userList'); 
+        ul.innerHTML = "";
+        s.forEach(c => { 
+            const u = c.val(); 
+            const lastActive = u.lastLogin ? u.lastLogin : '<span style="color:#ccc">N/A</span>';
+            ul.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.mob}</td><td>${u.address || '-'}</td><td style="font-size: 12px; color: #555;">${lastActive}</td></tr>`; 
+        });
+    });
+
+    // Updated Manage Products with Stock Toggle
+    onValue(ref(db, 'products'), (snapshot) => {
+        const list = document.getElementById('manageProductList');
+        list.innerHTML = "";
+        snapshot.forEach(childSnap => {
+            const p = childSnap.val();
+            const id = childSnap.key;
+            
+            const isAvailable = p.inStock !== false;
+            const stockText = isAvailable ? "In Stock" : "Out of Stock";
+            const stockClass = isAvailable ? "edit-btn" : "del-btn";
+
+            list.innerHTML += `
+            <tr>
+                <td><img src="${p.img.split(',')[0]}" width="50" style="border-radius:5px;"></td>
+                <td>${p.name}</td>
+                <td>₹${p.price}</td>
+                <td>
+                    <button class="action-btn stock-btn ${stockClass}" onclick="toggleStock('${id}', ${isAvailable})">
+                        ${stockText}
+                    </button>
+                </td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editProduct('${id}')">Edit</button>
+                    <button class="action-btn del-btn" onclick="deleteItem('products/${id}')">Delete</button>
+                </td>
+            </tr>`;
+        });
+    });
+
+    window.toggleStock = (id, currentStatus) => {
+        update(ref(db, 'products/' + id), { inStock: !currentStatus })
+        .then(() => {
+            Swal.fire({
+                title: 'Stock Updated!',
+                text: !currentStatus ? "Product is now In Stock" : "Product is Out of Stock",
+                icon: 'success',
+                timer: 1000,
+                showConfirmButton: false
+            });
+        });
+    };
+
+    window.saveProduct = () => {
+        const key = document.getElementById('editKey').value;
+        const data = {
+            name: document.getElementById('pName').value,
+            price: document.getElementById('pPrice').value,
+            desc: document.getElementById('pDesc').value,
+            img: Array.from(document.querySelectorAll('.pImgInput')).map(i => i.value).filter(v => v !== "").join(','),
+            inStock: true
+        };
+        if(key) update(ref(db, 'products/'+key), data).then(() => location.reload());
+        else push(ref(db, 'products'), data).then(() => location.reload());
+    };
+
+    window.editProduct = (id) => {
+        get(child(ref(db), `products/${id}`)).then(s => {
+            const p = s.val();
+            document.getElementById('pName').value = p.name;
+            document.getElementById('pPrice').value = p.price;
+            document.getElementById('pDesc').value = p.desc || "";
+            document.getElementById('editKey').value = id;
+            document.getElementById('formTitle').innerText = "Edit Product";
+            document.getElementById('submitBtn').innerText = "Update Product";
+            document.getElementById('cancelBtn').style.display = "block";
+            openTab('addProduct');
+        });
+    };
+
+    window.deleteItem = (path) => {
+        Swal.fire({ title: 'Are you sure?', text: "Do you want to delete this?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Yes, Delete!' }).then((result) => { if (result.isConfirmed) { remove(ref(db, path)).then(() => Swal.fire('Deleted!', '', 'success')); } });
+    };
+
+    window.addImageField = (v="") => {
+        const div = document.createElement('div');
+        div.style = "display:flex; gap:10px; margin-top:8px;";
+        div.innerHTML = `<input type="text" class="pImgInput" value="${v}" style="flex:1;"><button type="button" onclick="this.parentElement.remove()" style="background:#ff4757; color:white; border:none; padding:0 15px; border-radius:5px;">X</button>`;
+        document.getElementById('imageInputsContainer').appendChild(div);
+    };
+
+    window.viewProof = (img) => Swal.fire({ imageUrl: img, imageAlt: 'Payment Proof', confirmButtonColor: '#1a1a2e' });
+    window.updateStatus = (id, s) => update(ref(db, 'orders/'+id), {status:s, rejectReason:null});
+    window.rejectOrder = (id) => {
+        Swal.fire({ title: 'Reject Reason', input: 'text', showCancelButton: true }).then(res => { if(res.isConfirmed && res.value) update(ref(db, 'orders/'+id), {status:'Rejected', rejectReason:res.value}); });
+    };
+</script>
+</body>
+</html>
