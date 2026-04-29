@@ -49,6 +49,7 @@
         .swal2-popup { border-radius: 15px !important; font-family: 'Segoe UI', sans-serif; }
         .track-input { width: 120px; padding: 5px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; }
         
+        /* User Address Box Fix */
         .user-addr-box {
             font-size: 11px; 
             color: #444; 
@@ -58,11 +59,7 @@
             max-width: 200px; 
             line-height: 1.4; 
             border: 1px solid #eee;
-            white-space: pre-line; /* അഡ്രസ്സിലെ പുതിയ വരികൾ കാണിക്കാൻ */
         }
-
-        .checkbox-group { display: flex; align-items: center; gap: 10px; background: #f0f4f8; padding: 10px; border-radius: 5px; border: 1px dashed #1a1a2e; }
-        .checkbox-group input { width: auto; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -100,14 +97,6 @@
         <input type="hidden" id="editKey">
         <div class="form-group"><label>Product Name</label><input type="text" id="pName"></div>
         <div class="form-group"><label>Price (₹)</label><input type="number" id="pPrice"></div>
-        
-        <div class="form-group">
-            <div class="checkbox-group">
-                <input type="checkbox" id="showOnHome" checked>
-                <label for="showOnHome" style="margin:0; cursor:pointer;">Show this product on <b>Home Page</b> (Featured)</label>
-            </div>
-        </div>
-
         <div class="form-group" id="imageInputsContainer">
             <label>Product Image Link</label>
             <div style="display: flex; gap: 10px;"><input type="text" class="pImgInput" placeholder="Paste link here"><button type="button" onclick="addImageField()" style="padding:0 15px; background:#1a1a2e; border:none; color:white; border-radius:5px;">+</button></div>
@@ -120,7 +109,7 @@
     <div id="manageProducts" class="tab-content">
         <h2>Manage Inventory</h2>
         <table>
-            <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Location</th><th>Stock Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Stock Status</th><th>Action</th></tr></thead>
             <tbody id="manageProductList"></tbody>
         </table>
     </div>
@@ -168,31 +157,124 @@
     onValue(ref(db, 'orders'), snap => {
         const ol = document.getElementById('orderList'); 
         const gallery = document.getElementById('proofGallery');
-        ol.innerHTML = ""; gallery.innerHTML = "";
+        ol.innerHTML = "";
+        gallery.innerHTML = "";
         
         snap.forEach(c => { 
-            const o = c.val(); const id = c.key;
+            const o = c.val(); 
+            const id = c.key;
             const hasProof = (o.proof && o.proof !== "No Screenshot");
             const proofBtn = hasProof ? `<button class="action-btn proof-btn" onclick="viewProof('${o.proof}')">🖼️ Proof</button>` : `<span style="font-size:11px; color:#999;">No Proof</span>`;
             const reasonHTML = o.rejectReason ? `<br><small style="color:#dc3545;">Reason: ${o.rejectReason}</small>` : "";
+            const currentTracking = o.trackingID || "";
 
             ol.innerHTML += `
             <tr>
-                <td><b>${o.customer}</b><br><small>${o.mobile}</small><br><button onclick="viewUserAddress('${o.mobile}')" style="font-size:9px; background:#f0f0f0; border:1px solid #ddd; padding:2px 4px; cursor:pointer; border-radius:3px; margin-top:3px;">📍 View Addr</button></td>
+                <td>
+                    <b>${o.customer}</b><br>
+                    <small>${o.mobile}</small><br>
+                    <button onclick="viewUserAddress('${o.mobile}')" style="font-size:9px; background:#f0f0f0; border:1px solid #ddd; padding:2px 4px; cursor:pointer; border-radius:3px; margin-top:3px;">📍 View Addr</button>
+                </td>
                 <td>${o.product}<br><small>₹${o.price}</small></td>
                 <td>${o.payment}<br>${proofBtn}</td>
                 <td><span style="color:${o.status==='Confirmed'?'green':(o.status==='Rejected'?'red':(o.status==='Shipped'?'#28a745':'orange'))}">${o.status||'Pending'}</span>${reasonHTML}</td>
-                <td><input type="text" id="track_${id}" class="track-input" placeholder="Tracking ID" value="${o.trackingID||''}"><button class="action-btn track-update-btn" onclick="setTracking('${id}')">Save ID</button></td>
-                <td><button class="action-btn edit-btn" onclick="updateStatus('${id}', 'Confirmed')">Confirm</button><button class="action-btn reject-btn" onclick="rejectOrder('${id}')">Reject</button><button class="action-btn del-btn" onclick="deleteItem('orders/${id}')">Delete</button></td>
+                <td>
+                    <input type="text" id="track_${id}" class="track-input" placeholder="Tracking ID" value="${currentTracking}">
+                    <button class="action-btn track-update-btn" onclick="setTracking('${id}')">Save ID</button>
+                </td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="updateStatus('${id}', 'Confirmed')">Confirm</button>
+                    <button class="action-btn reject-btn" onclick="rejectOrder('${id}')">Reject</button>
+                    <button class="action-btn del-btn" onclick="deleteItem('orders/${id}')">Delete</button>
+                </td>
             </tr>`;
 
             if(hasProof) {
-                gallery.innerHTML += `<div class="proof-card"><img src="${o.proof}" onclick="viewProof('${o.proof}')"><p style="font-size:12px; font-weight:bold;">${o.customer}</p><div class="proof-actions"><a href="${o.proof}" target="_blank" download class="save-btn">📥 Save</a><button onclick="deleteItem('orders/${id}')" class="gallery-del-btn">🗑️ Delete</button></div></div>`;
+                gallery.innerHTML += `
+                    <div class="proof-card">
+                        <img src="${o.proof}" onclick="viewProof('${o.proof}')">
+                        <p style="font-size:12px; font-weight:bold;">${o.customer}</p>
+                        <p style="font-size:11px; color:#666;">₹${o.price}</p>
+                        <div class="proof-actions">
+                            <a href="${o.proof}" target="_blank" download="payment_${o.customer}" class="save-btn">📥 Save</a>
+                            <button onclick="deleteItem('orders/${id}')" class="gallery-del-btn">🗑️ Delete</button>
+                        </div>
+                    </div>`;
             }
         });
     });
 
-    // --- Product Logic ---
+    // --- User Address Logic ---
+    window.viewUserAddress = (mobile) => {
+        get(child(ref(db), `users/${mobile}`)).then(s => {
+            if(s.exists() && s.val().fullAddress) {
+                const fa = s.val().fullAddress;
+                Swal.fire({
+                    title: 'Delivery Address',
+                    html: `<div style="text-align:left; font-size:14px; line-height:1.6;">
+                            <p><b>Street:</b> ${fa.street}</p>
+                            <p><b>Landmark:</b> ${fa.landmark}</p>
+                            <p><b>City:</b> ${fa.city}</p>
+                            <p><b>Pincode:</b> ${fa.pincode}</p>
+                            <p><b>Alt Contact:</b> ${fa.contact}</p>
+                           </div>`,
+                    confirmButtonColor: '#1a1a2e'
+                });
+            } else {
+                Swal.fire('Notice', 'Detailed address not found.', 'info');
+            }
+        });
+    };
+
+    // --- Users List Logic (UPDATED WITH MOBILE IN ADDRESS) ---
+    onValue(ref(db, 'users'), s => {
+        const ul = document.getElementById('userList'); 
+        ul.innerHTML = "";
+        s.forEach(c => { 
+            const u = c.val(); 
+            const firebaseKey = c.key; 
+            
+            // Priority for display mobile: mob > mobile > email > key
+            const displayMobile = u.mob ? u.mob : (u.mobile ? u.mobile : (u.email ? u.email : firebaseKey));
+            const lastActive = u.lastLogin ? u.lastLogin : '<span style="color:#ccc">N/A</span>';
+            
+            let addressHTML = "";
+            if(u.fullAddress) {
+                const fa = u.fullAddress;
+                addressHTML = `
+                    <div class="user-addr-box">
+                        <b>St:</b> ${fa.street || '-'}<br>
+                        <b>Lm:</b> ${fa.landmark || '-'}<br>
+                        <b>City:</b> ${fa.city || '-'} - ${fa.pincode || '-'}<br>
+                        <hr style="margin: 4px 0; border: 0; border-top: 1px dashed #ccc;">
+                        <b style="color: #ff9900;">Ph: ${fa.contact || displayMobile}</b>
+                    </div>`;
+            } else {
+                addressHTML = `
+                    <div class="user-addr-box">
+                        ${u.address || '-'}<br>
+                        <b style="color: #ff9900;">Ph: ${displayMobile}</b>
+                    </div>`;
+            }
+
+            ul.innerHTML += `
+                <tr>
+                    <td><b>${u.name || 'User'}</b></td>
+                    <td style="font-size: 12px; word-break: break-all;">${displayMobile}</td> 
+                    <td>${addressHTML}</td>
+                    <td style="font-size: 12px; color: #555;">${lastActive}</td>
+                </tr>`; 
+        });
+    });
+
+    // --- Other Functions ---
+    window.setTracking = (id) => {
+        const trk = document.getElementById(`track_${id}`).value;
+        if(!trk) return Swal.fire('Error', 'Enter Tracking ID', 'error');
+        update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' })
+        .then(() => Swal.fire('Updated!', 'Shipped Status Set.', 'success'));
+    };
+
     onValue(ref(db, 'products'), (snapshot) => {
         const list = document.getElementById('manageProductList');
         list.innerHTML = "";
@@ -200,41 +282,37 @@
             const p = childSnap.val();
             const id = childSnap.key;
             const isAvailable = p.inStock !== false;
-            const locationTag = p.showOnHome ? '<span style="color:blue; font-size:10px;">🏠 Home + 🛍️ All</span>' : '<span style="color:gray; font-size:10px;">🛍️ All Only</span>';
-            
             list.innerHTML += `
             <tr>
                 <td><img src="${p.img ? p.img.split(',')[0] : ''}" width="50" style="border-radius:5px;"></td>
                 <td>${p.name}</td>
                 <td>₹${p.price}</td>
-                <td>${locationTag}</td>
                 <td><button class="action-btn stock-btn ${isAvailable?'edit-btn':'del-btn'}" onclick="toggleStock('${id}', ${isAvailable})">${isAvailable?'In Stock':'Out of Stock'}</button></td>
-                <td><button class="action-btn edit-btn" onclick="editProduct('${id}')">Edit</button><button class="action-btn del-btn" onclick="deleteItem('products/${id}')">Delete</button></td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editProduct('${id}')">Edit</button>
+                    <button class="action-btn del-btn" onclick="deleteItem('products/${id}')">Delete</button>
+                </td>
             </tr>`;
         });
     });
 
+    window.toggleStock = (id, current) => update(ref(db, 'products/' + id), { inStock: !current });
+    
     window.saveProduct = () => {
         const key = document.getElementById('editKey').value;
         const name = document.getElementById('pName').value;
         const price = document.getElementById('pPrice').value;
-        const onHome = document.getElementById('showOnHome').checked;
-
         if(!name || !price) return Swal.fire('Error', 'Name and Price required', 'error');
 
         const data = {
             name: name,
             price: price,
-            showOnHome: onHome,
             desc: document.getElementById('pDesc').value,
             img: Array.from(document.querySelectorAll('.pImgInput')).map(i => i.value).filter(v => v !== "").join(','),
             inStock: true
         };
-
-        const dbRef = key ? ref(db, 'products/'+key) : push(ref(db, 'products'));
-        update(dbRef, data).then(() => {
-            Swal.fire('Success', 'Product Saved', 'success').then(() => location.reload());
-        });
+        if(key) update(ref(db, 'products/'+key), data).then(() => location.reload());
+        else push(ref(db, 'products'), data).then(() => location.reload());
     };
 
     window.editProduct = (id) => {
@@ -243,7 +321,6 @@
             document.getElementById('pName').value = p.name;
             document.getElementById('pPrice').value = p.price;
             document.getElementById('pDesc').value = p.desc || "";
-            document.getElementById('showOnHome').checked = p.showOnHome || false;
             document.getElementById('editKey').value = id;
             document.getElementById('formTitle').innerText = "Edit Product";
             document.getElementById('submitBtn').innerText = "Update Product";
@@ -253,77 +330,33 @@
             container.innerHTML = '<label>Product Image Link</label>';
             const images = p.img ? p.img.split(',') : [""];
             images.forEach((img, index) => {
-                if(index === 0) container.innerHTML += `<div style="display: flex; gap: 10px;"><input type="text" class="pImgInput" value="${img}"><button type="button" onclick="addImageField()" style="padding:0 15px; background:#1a1a2e; border:none; color:white; border-radius:5px;">+</button></div>`;
-                else addImageField(img);
+                if(index === 0) {
+                    container.innerHTML += `<div style="display: flex; gap: 10px;"><input type="text" class="pImgInput" value="${img}" placeholder="Paste link here"><button type="button" onclick="addImageField()" style="padding:0 15px; background:#1a1a2e; border:none; color:white; border-radius:5px;">+</button></div>`;
+                } else {
+                    addImageField(img);
+                }
             });
+
             openTab('addProduct');
         });
     };
 
-    window.toggleStock = (id, current) => update(ref(db, 'products/' + id), { inStock: !current });
-    window.deleteItem = (path) => Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true }).then(r => { if(r.isConfirmed) remove(ref(db, path)); });
+    window.deleteItem = (path) => {
+        Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true }).then(r => { if(r.isConfirmed) remove(ref(db, path)); });
+    };
+
     window.addImageField = (v="") => {
-        const div = document.createElement('div'); div.style = "display:flex; gap:10px; margin-top:8px;";
+        const div = document.createElement('div');
+        div.style = "display:flex; gap:10px; margin-top:8px;";
         div.innerHTML = `<input type="text" class="pImgInput" value="${v}" style="flex:1;"><button type="button" onclick="this.parentElement.remove()" style="background:#ff4757; color:white; border:none; padding:0 15px; border-radius:5px;">X</button>`;
         document.getElementById('imageInputsContainer').appendChild(div);
     };
+
     window.viewProof = (img) => Swal.fire({ imageUrl: img, confirmButtonColor: '#1a1a2e' });
     window.updateStatus = (id, s) => update(ref(db, 'orders/'+id), {status:s, rejectReason:null});
     window.rejectOrder = (id) => {
         Swal.fire({ title: 'Reason', input: 'text', showCancelButton: true }).then(res => { if(res.isConfirmed && res.value) update(ref(db, 'orders/'+id), {status:'Rejected', rejectReason:res.value}); });
     };
-    window.setTracking = (id) => {
-        const trk = document.getElementById(`track_${id}`).value;
-        update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' }).then(() => Swal.fire('Updated!', 'Shipped Status Set.', 'success'));
-    };
-
-    // ഓർഡർ ലിസ്റ്റിൽ യൂസറുടെ അഡ്രസ്സ് കൃത്യമായി കാണിക്കാനുള്ള ഫംഗ്ഷൻ
-    window.viewUserAddress = (mobile) => {
-        if (!mobile) return Swal.fire('Error', 'Mobile number not found', 'error');
-        get(child(ref(db), 'users/' + mobile)).then((snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                let addr = userData.address || "Address not provided.";
-                
-                // അഡ്രസ്സിൽ ':' ഉണ്ടെങ്കിൽ പേരിന് താഴെ അഡ്രസ്സ് വരുന്ന രീതിയിൽ മാറ്റുന്നു
-                if(addr.includes(':')) {
-                    addr = addr.replace(':', ':<br>');
-                }
-
-                Swal.fire({
-                    title: `${userData.name || 'Customer Profile'}`,
-                    html: `<div style="text-align:left; background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; font-size:14px;">${addr}</div>`,
-                    icon: 'info',
-                    confirmButtonColor: '#1a1a2e'
-                });
-            } else {
-                Swal.fire('Not Found', 'User profile not found in database.', 'warning');
-            }
-        });
-    };
-
-   onValue(ref(db, 'users'), s => {
-        const ul = document.getElementById('userList'); ul.innerHTML = "";
-        s.forEach(c => { 
-            const u = c.val(); const firebaseKey = c.key; 
-            const displayMobile = u.mob || u.mobile || u.email || firebaseKey;
-            
-            // അഡ്രസ്സ് ഫീൽഡിൽ 'Full Address' എന്ന് വരുന്നത് വൃത്തിയാക്കുന്നു
-            let addr =  u.address || 'No Address';
-            
-            // ഇതിൽ ':' ഉണ്ടെങ്കിൽ അത് കഴിഞ്ഞുള്ള ഭാഗം അടുത്ത വരിയിൽ വരാൻ
-            if(addr.includes(':')) {
-                addr = addr.replace(':', ':<br>');
-            }
-
-            ul.innerHTML += `<tr>
-                <td><b>${u.name || 'User'}</b></td>
-                <td style="font-size: 12px;">${displayMobile}</td>
-                <td><div class="user-addr-box" style="white-space: pre-line; line-height:1.5;">${addr}</div></td>
-                <td style="font-size: 12px;">${u.lastLogin || 'N/A'}</td>
-            </tr>`; 
-        });
-    });
 </script>
 </body>
 </html>
