@@ -58,6 +58,7 @@
             max-width: 200px; 
             line-height: 1.4; 
             border: 1px solid #eee;
+            white-space: pre-line; /* അഡ്രസ്സിലെ പുതിയ വരികൾ കാണിക്കാൻ */
         }
 
         .checkbox-group { display: flex; align-items: center; gap: 10px; background: #f0f4f8; padding: 10px; border-radius: 5px; border: 1px dashed #1a1a2e; }
@@ -276,20 +277,27 @@
         update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' }).then(() => Swal.fire('Updated!', 'Shipped Status Set.', 'success'));
     };
 
-    // ഓർഡർ ലിസ്റ്റിൽ യൂസറുടെ അഡ്രസ്സ് കാണിക്കാനുള്ള ഫംഗ്ഷൻ
+    // ഓർഡർ ലിസ്റ്റിൽ യൂസറുടെ അഡ്രസ്സ് കൃത്യമായി കാണിക്കാനുള്ള ഫംഗ്ഷൻ
     window.viewUserAddress = (mobile) => {
         if (!mobile) return Swal.fire('Error', 'Mobile number not found', 'error');
         get(child(ref(db), 'users/' + mobile)).then((snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
+                let addr = userData.address || "Address not provided.";
+                
+                // അഡ്രസ്സിൽ ':' ഉണ്ടെങ്കിൽ പേരിന് താഴെ അഡ്രസ്സ് വരുന്ന രീതിയിൽ മാറ്റുന്നു
+                if(addr.includes(':')) {
+                    addr = addr.replace(':', ':<br>');
+                }
+
                 Swal.fire({
-                    title: `Address: ${userData.name || 'Customer'}`,
-                    text: userData.address || "Address not provided.",
+                    title: `${userData.name || 'Customer Profile'}`,
+                    html: `<div style="text-align:left; background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; font-size:14px;">${addr}</div>`,
                     icon: 'info',
                     confirmButtonColor: '#1a1a2e'
                 });
             } else {
-                Swal.fire('Not Found', 'User profile not found.', 'warning');
+                Swal.fire('Not Found', 'User profile not found in database.', 'warning');
             }
         });
     };
@@ -299,7 +307,14 @@
         s.forEach(c => { 
             const u = c.val(); const firebaseKey = c.key; 
             const displayMobile = u.mob || u.mobile || u.email || firebaseKey;
-            ul.innerHTML += `<tr><td><b>${u.name || 'User'}</b></td><td style="font-size: 12px;">${displayMobile}</td><td><div class="user-addr-box">${u.address || 'No Address'}</div></td><td style="font-size: 12px;">${u.lastLogin || 'N/A'}</td></tr>`; 
+            
+            // അഡ്രസ്സ് കോളം വൃത്തിയാക്കുന്നു
+            let formattedAddress = u.address || 'No Address';
+            if(formattedAddress.includes(':')) {
+                formattedAddress = formattedAddress.replace(':', ':<br>');
+            }
+
+            ul.innerHTML += `<tr><td><b>${u.name || 'User'}</b></td><td style="font-size: 12px;">${displayMobile}</td><td><div class="user-addr-box">${formattedAddress}</div></td><td style="font-size: 12px;">${u.lastLogin || 'N/A'}</td></tr>`; 
         });
     });
 </script>
