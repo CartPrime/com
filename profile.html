@@ -165,7 +165,7 @@
                     noMsg.style.display = 'none';
                     document.getElementById('displayStreet').innerText = data.address.street || "";
                     document.getElementById('displayLandmark').innerText = "Landmark: " + (data.address.landmark || "");
-                    document.getElementById('displayCityPin').innerText = (data.fullAddress.city || "") + " - " + (data.address.pincode || "");
+                    document.getElementById('displayCityPin').innerText = (data.address.city || "") + " - " + (data.address.pincode || "");
                     document.getElementById('displayPhone').innerText = "📞 " + (data.address.contact || userMob);
                 } else {
                     displayArea.style.display = 'none';
