@@ -141,6 +141,7 @@
         if(event) event.currentTarget.classList.add('active');
     };
 
+    // --- Orders Logic ---
     onValue(ref(db, 'orders'), snap => {
         const ol = document.getElementById('orderList'); 
         const gallery = document.getElementById('proofGallery');
@@ -191,7 +192,7 @@
         });
     });
 
-    // Function to view detailed address from Orders tab
+    // --- User Address Logic ---
     window.viewUserAddress = (mobile) => {
         get(child(ref(db), `users/${mobile}`)).then(s => {
             if(s.exists() && s.val().fullAddress) {
@@ -205,27 +206,21 @@
                             <p><b>Pincode:</b> ${fa.pincode}</p>
                             <p><b>Alt Contact:</b> ${fa.contact}</p>
                            </div>`,
-                    confirmButtonColor: '#ff9900'
+                    confirmButtonColor: '#1a1a2e'
                 });
             } else {
-                Swal.fire('Notice', 'Detailed address not updated by user yet.', 'info');
+                Swal.fire('Notice', 'Detailed address not found.', 'info');
             }
         });
     };
 
-    window.setTracking = (id) => {
-        const trk = document.getElementById(`track_${id}`).value;
-        if(!trk) return Swal.fire('Error', 'Please enter a Tracking ID', 'error');
-        update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' })
-        .then(() => Swal.fire('Updated!', 'Tracking ID saved and status changed to Shipped.', 'success'));
-    };
-
-    // Updated Users List with Detailed Address
+    // --- Users List Logic (FIXED MOBILE) ---
     onValue(ref(db, 'users'), s => {
         const ul = document.getElementById('userList'); 
         ul.innerHTML = "";
         s.forEach(c => { 
             const u = c.val(); 
+            const userMobile = c.key; // ഫയർബേസ് കീ ആണ് മൊബൈൽ നമ്പർ
             const lastActive = u.lastLogin ? u.lastLogin : '<span style="color:#ccc">N/A</span>';
             
             let addressHTML = "";
@@ -233,17 +228,31 @@
                 const fa = u.fullAddress;
                 addressHTML = `
                     <div style="font-size: 11px; color: #444; background: #f9f9f9; padding: 5px; border-radius: 4px;">
-                        <b>St:</b> ${fa.street}<br>
-                        <b>Lm:</b> ${fa.landmark}<br>
-                        <b>City:</b> ${fa.city} - ${fa.pincode}
+                        <b>St:</b> ${fa.street || '-'}<br>
+                        <b>Lm:</b> ${fa.landmark || '-'}<br>
+                        <b>City:</b> ${fa.city || '-'} - ${fa.pincode || '-'}
                     </div>`;
             } else {
                 addressHTML = `<span style="color:#999; font-size:11px;">${u.address || '-'}</span>`;
             }
 
-            ul.innerHTML += `<tr><td><b>${u.name || 'User'}</b></td><td>${u.mob}</td><td>${addressHTML}</td><td style="font-size: 12px; color: #555;">${lastActive}</td></tr>`; 
+            ul.innerHTML += `
+                <tr>
+                    <td><b>${u.name || 'User'}</b></td>
+                    <td>${userMobile}</td> 
+                    <td>${addressHTML}</td>
+                    <td style="font-size: 12px; color: #555;">${lastActive}</td>
+                </tr>`; 
         });
     });
+
+    // --- Other Functions ---
+    window.setTracking = (id) => {
+        const trk = document.getElementById(`track_${id}`).value;
+        if(!trk) return Swal.fire('Error', 'Enter Tracking ID', 'error');
+        update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' })
+        .then(() => Swal.fire('Updated!', 'Shipped Status Set.', 'success'));
+    };
 
     onValue(ref(db, 'products'), (snapshot) => {
         const list = document.getElementById('manageProductList');
@@ -251,21 +260,13 @@
         snapshot.forEach(childSnap => {
             const p = childSnap.val();
             const id = childSnap.key;
-            
             const isAvailable = p.inStock !== false;
-            const stockText = isAvailable ? "In Stock" : "Out of Stock";
-            const stockClass = isAvailable ? "edit-btn" : "del-btn";
-
             list.innerHTML += `
             <tr>
                 <td><img src="${p.img.split(',')[0]}" width="50" style="border-radius:5px;"></td>
                 <td>${p.name}</td>
                 <td>₹${p.price}</td>
-                <td>
-                    <button class="action-btn stock-btn ${stockClass}" onclick="toggleStock('${id}', ${isAvailable})">
-                        ${stockText}
-                    </button>
-                </td>
+                <td><button class="action-btn stock-btn ${isAvailable?'edit-btn':'del-btn'}" onclick="toggleStock('${id}', ${isAvailable})">${isAvailable?'In Stock':'Out of Stock'}</button></td>
                 <td>
                     <button class="action-btn edit-btn" onclick="editProduct('${id}')">Edit</button>
                     <button class="action-btn del-btn" onclick="deleteItem('products/${id}')">Delete</button>
@@ -274,19 +275,8 @@
         });
     });
 
-    window.toggleStock = (id, currentStatus) => {
-        update(ref(db, 'products/' + id), { inStock: !currentStatus })
-        .then(() => {
-            Swal.fire({
-                title: 'Stock Updated!',
-                text: !currentStatus ? "Product is now In Stock" : "Product is Out of Stock",
-                icon: 'success',
-                timer: 1000,
-                showConfirmButton: false
-            });
-        });
-    };
-
+    window.toggleStock = (id, current) => update(ref(db, 'products/' + id), { inStock: !current });
+    
     window.saveProduct = () => {
         const key = document.getElementById('editKey').value;
         const data = {
@@ -315,7 +305,7 @@
     };
 
     window.deleteItem = (path) => {
-        Swal.fire({ title: 'Are you sure?', text: "Do you want to delete this?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Yes, Delete!' }).then((result) => { if (result.isConfirmed) { remove(ref(db, path)).then(() => Swal.fire('Deleted!', '', 'success')); } });
+        Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true }).then(r => { if(r.isConfirmed) remove(ref(db, path)); });
     };
 
     window.addImageField = (v="") => {
@@ -325,10 +315,10 @@
         document.getElementById('imageInputsContainer').appendChild(div);
     };
 
-    window.viewProof = (img) => Swal.fire({ imageUrl: img, imageAlt: 'Payment Proof', confirmButtonColor: '#1a1a2e' });
+    window.viewProof = (img) => Swal.fire({ imageUrl: img, confirmButtonColor: '#1a1a2e' });
     window.updateStatus = (id, s) => update(ref(db, 'orders/'+id), {status:s, rejectReason:null});
     window.rejectOrder = (id) => {
-        Swal.fire({ title: 'Reject Reason', input: 'text', showCancelButton: true }).then(res => { if(res.isConfirmed && res.value) update(ref(db, 'orders/'+id), {status:'Rejected', rejectReason:res.value}); });
+        Swal.fire({ title: 'Reason', input: 'text', showCancelButton: true }).then(res => { if(res.isConfirmed && res.value) update(ref(db, 'orders/'+id), {status:'Rejected', rejectReason:res.value}); });
     };
 </script>
 </body>
