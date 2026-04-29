@@ -5,6 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CartPrime - Secure Auth</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -19,7 +20,18 @@
         input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
         .btn { width: 100%; padding: 13px; background: #ff9900; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 16px; color: white; }
         
-        /* Premium Alert Styling Customization */
+        /* Google Button Style */
+        .google-btn {
+            width: 100%; padding: 12px; background: white; border: 1px solid #ddd; 
+            border-radius: 8px; cursor: pointer; margin-top: 15px; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s;
+        }
+        .google-btn:hover { background: #f1f1f1; }
+        .divider { text-align: center; margin: 15px 0; color: #888; font-size: 12px; position: relative; }
+        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 40%; height: 1px; background: #ddd; }
+        .divider::before { left: 0; } .divider::after { right: 0; }
+
         .swal2-popup { border-radius: 20px !important; }
     </style>
 </head>
@@ -33,14 +45,20 @@
 
     <div id="loginBox" class="form-box active">
         <div class="input-group">
-            <label>Mobile</label>
-            <input type="text" id="lUser" placeholder="Mobile">
+            <label>Mobile / Email</label>
+            <input type="text" id="lUser" placeholder="Mobile or Email">
         </div>
         <div class="input-group">
             <label>Password</label>
             <input type="password" id="lPass" placeholder="Enter password">
         </div>
         <button class="btn" onclick="login()">Login</button>
+        
+        <div class="divider">OR</div>
+        
+        <button class="google-btn" onclick="googleLogin()">
+            <img src="https://img.icons8.com/color/24/000000/google-logo.png"/> Continue with Google
+        </button>
     </div>
 
     <div id="registerBox" class="form-box">
@@ -60,7 +78,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -74,8 +92,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    // --- Premium Toast/Alert Function ---
     const showAlert = (title, text, icon) => {
         return Swal.fire({
             title: title,
@@ -88,7 +106,31 @@
         });
     };
 
-    // --- Login Function ---
+    // --- Google Login Function ---
+    window.googleLogin = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Google ലോഗിൻ ചെയ്യുമ്പോൾ ഡാറ്റാബേസിലും സേവ് ചെയ്യുന്നു
+            await update(ref(db, 'users/' + user.uid), {
+                name: user.displayName,
+                email: user.email,
+                profilePic: user.photoURL,
+                lastLogin: new Date().toLocaleString('en-IN')
+            });
+
+            localStorage.setItem('userRole', 'user');
+            localStorage.setItem('userMob', user.uid); // UID ആവും ഇവിടെ ഐഡി
+
+            showAlert("Welcome!", `Hello ${user.displayName}`, "success").then(() => {
+                window.location.href = 'index.html';
+            });
+        } catch (error) {
+            showAlert("Error", "Google Login Failed: " + error.message, "error");
+        }
+    };
+
     window.login = async () => {
         const userVal = document.getElementById('lUser').value.trim();
         const passVal = document.getElementById('lPass').value.trim();
@@ -107,21 +149,16 @@
                 });
                 return;
             } catch (error) {
-                showAlert("Error", "Admin Login Failed: " + error.message, "error");
+                showAlert("Error", "Admin Login Failed", "error");
                 return;
             }
         }
 
-        const dbRef = ref(db);
-        get(child(dbRef, `users/${userVal}`)).then((snapshot) => {
+        get(child(ref(db), `users/${userVal}`)).then((snapshot) => {
             if (snapshot.exists()) {
                 const user = snapshot.val();
                 if(user.pass === passVal) {
-                    const now = new Date().toLocaleString('en-IN'); 
-
-                    update(ref(db, 'users/' + userVal), { 
-                        lastLogin: now 
-                    }).then(() => {
+                    update(ref(db, 'users/' + userVal), { lastLogin: new Date().toLocaleString('en-IN') }).then(() => {
                         localStorage.setItem('userRole', 'user');
                         localStorage.setItem('userMob', userVal); 
                         showAlert("Success!", "Login Successful!", "success").then(() => {
@@ -132,12 +169,11 @@
                     showAlert("Failed", "Wrong Password!", "error");
                 }
             } else {
-                showAlert("No Account", "No account found with this number!", "info");
+                showAlert("No Account", "No account found!", "info");
             }
         });
     };
 
-    // --- Registration Function ---
     window.register = async () => {
         const name = document.getElementById('rName').value.trim();
         const mob = document.getElementById('rMob').value.trim();
@@ -149,13 +185,11 @@
         if (name && mob && pass) {
             get(child(ref(db), `users/${mob}`)).then((snapshot) => {
                 if (snapshot.exists()) {
-                    showAlert("Already User", "Mobile Number already registered!", "warning");
+                    showAlert("Already User", "Mobile Number registered!", "warning");
                 } else {
                     const address = `${house}, ${area}, Pin: ${pin}`;
-                    set(ref(db, 'users/' + mob), { 
-                        name, mob, address, pass, lastLogin: "First Time" 
-                    }).then(() => {
-                        showAlert("Congratulations!", "Registration Successful!", "success").then(() => {
+                    set(ref(db, 'users/' + mob), { name, mob, address, pass, lastLogin: "First Time" }).then(() => {
+                        showAlert("Congratulations!", "Success!", "success").then(() => {
                             window.location.reload();
                         });
                     });
