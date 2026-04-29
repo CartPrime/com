@@ -16,7 +16,7 @@
             display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .logo { font-size: 22px; font-weight: bold; color: #ffffff; } 
+        .logo { font-size: 22px; font-weight: bold; color: #1a1a2e; } 
         
         .nav-icons { display: flex; align-items: center; gap: 25px; }
         .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; cursor: pointer; position: relative; }
@@ -53,6 +53,7 @@
         .edit-btn { background: white; border: 1px solid #ff9900; color: #ff9900; padding: 5px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; }
         .edit-btn:hover { background: #ff9900; color: white; }
         
+        .address-details p { margin-bottom: 4px; }
         #fileInput { display: none; }
     </style>
 </head>
@@ -107,8 +108,14 @@
                     <span class="tag">DEFAULT ADDRESS</span>
                     <button class="edit-btn" onclick="updateAddress()">EDIT</button>
                 </div>
-                <p id="displayAddrName" style="font-weight: bold; margin-bottom: 5px; color: #333;"></p>
-                <p id="displayAddrContent" style="font-size: 14px; color: #555; line-height: 1.5;">No address saved yet.</p>
+                <div id="addressDisplayArea" class="address-details">
+                    <p id="displayAddrName" style="font-weight: bold; color: #333;"></p>
+                    <p id="displayStreet" style="font-size: 14px; color: #555;"></p>
+                    <p id="displayLandmark" style="font-size: 14px; color: #555;"></p>
+                    <p id="displayCityPin" style="font-size: 14px; color: #555;"></p>
+                    <p id="displayPhone" style="font-size: 14px; color: #333; font-weight: bold; margin-top: 8px;"></p>
+                </div>
+                <p id="noAddressMsg" style="display:none; font-size: 14px; color: #999;">No address saved. Click EDIT to add.</p>
             </div>
             <p style="font-size: 11px; color: #888; margin-top: 10px; text-align: center;">* This address will be used for all your orders.</p>
         </div>
@@ -149,14 +156,20 @@
                     document.getElementById('mainProfileImg').src = data.profilePic;
                 }
 
-                // SHO AADRESS
-                const addrContent = document.getElementById('displayAddrContent');
-                if (data.address) {
-                    addrContent.innerText = data.address;
-                    addrContent.style.color = "#333";
+                // Show Address Details
+                const displayArea = document.getElementById('addressDisplayArea');
+                const noMsg = document.getElementById('noAddressMsg');
+
+                if (data.fullAddress) {
+                    displayArea.style.display = 'block';
+                    noMsg.style.display = 'none';
+                    document.getElementById('displayStreet').innerText = data.fullAddress.street || "";
+                    document.getElementById('displayLandmark').innerText = "Landmark: " + (data.fullAddress.landmark || "");
+                    document.getElementById('displayCityPin').innerText = (data.fullAddress.city || "") + " - " + (data.fullAddress.pincode || "");
+                    document.getElementById('displayPhone').innerText = "📞 " + (data.fullAddress.contact || userMob);
                 } else {
-                    addrContent.innerText = "No address saved. Click EDIT to add.";
-                    addrContent.style.color = "#999";
+                    displayArea.style.display = 'none';
+                    noMsg.style.display = 'block';
                 }
             }
         });
@@ -174,24 +187,41 @@
             });
         };
 
-        // Edit/Update Address
-        window.updateAddress = () => {
-            const currentAddr = document.getElementById('displayAddrContent').innerText;
-            Swal.fire({
-                title: 'Delivery Address',
-                input: 'textarea',
-                inputLabel: 'Enter full address with PIN code',
-                inputValue: currentAddr === "No address saved. Click EDIT to add." ? "" : currentAddr,
-                inputPlaceholder: 'House No, Street, Landmark, City, PIN...',
+        // Edit/Update Address (Split Fields)
+        window.updateAddress = async () => {
+            const { value: formValues } = await Swal.fire({
+                title: 'Update Delivery Address',
+                html:
+                    `<input id="swal-street" class="swal2-input" placeholder="House Name / Street" style="font-size:14px">` +
+                    `<input id="swal-landmark" class="swal2-input" placeholder="Landmark" style="font-size:14px">` +
+                    `<div style="display:flex; gap:10px; width:100%; padding:0 1.1em">
+                        <input id="swal-city" class="swal2-input" placeholder="City" style="flex:1; margin:10px 0; font-size:14px">
+                        <input id="swal-pincode" type="number" class="swal2-input" placeholder="Pincode" style="flex:1; margin:10px 0; font-size:14px">
+                    </div>` +
+                    `<input id="swal-contact" type="tel" class="swal2-input" placeholder="Alternative Contact Number" style="font-size:14px">`,
+                focusConfirm: false,
                 showCancelButton: true,
                 confirmButtonText: 'Save Address',
-                confirmButtonColor: '#ff9900'
-            }).then(res => {
-                if(res.value) {
-                    update(ref(db, 'users/' + userMob), { address: res.value })
-                    .then(() => Swal.fire('Success', 'Address updated successfully!', 'success'));
+                confirmButtonColor: '#ff9900',
+                preConfirm: () => {
+                    const street = document.getElementById('swal-street').value.trim();
+                    const landmark = document.getElementById('swal-landmark').value.trim();
+                    const city = document.getElementById('swal-city').value.trim();
+                    const pincode = document.getElementById('swal-pincode').value.trim();
+                    const contact = document.getElementById('swal-contact').value.trim();
+
+                    if (!street || !city || !pincode || !contact) {
+                        Swal.showValidationMessage('Please fill all mandatory fields');
+                        return false;
+                    }
+                    return { street, landmark, city, pincode, contact };
                 }
             });
+
+            if (formValues) {
+                update(ref(db, 'users/' + userMob + '/fullAddress'), formValues)
+                .then(() => Swal.fire('Success', 'Address updated successfully!', 'success'));
+            }
         };
 
         // Profile Pic Update
