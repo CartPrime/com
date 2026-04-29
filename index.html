@@ -101,8 +101,8 @@
 
             if (role) {
                 loginLink.style.display = 'none';
-                profileIcon.style.display = 'href="login.html"';
-                if(role === 'admin') adminBtn.style.display = 'inline-block';
+                profileIcon.style.display = 'none';
+                if(role === 'admin') adminBtn.window.location.href = 'login.html.style.display = 'inline-block'; 
 
                 onValue(ref(db, 'users/' + userMob), (snapshot) => {
                     const userData = snapshot.val();
