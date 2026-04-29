@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickStore - Full Admin Panel</title>
+    <title>CartPrime - Full Admin Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -157,7 +157,11 @@
 
             ol.innerHTML += `
             <tr>
-                <td><b>${o.customer}</b><br><small>${o.mobile}</small></td>
+                <td>
+                    <b>${o.customer}</b><br>
+                    <small>${o.mobile}</small><br>
+                    <button onclick="viewUserAddress('${o.mobile}')" style="font-size:9px; background:#f0f0f0; border:1px solid #ddd; padding:2px 4px; cursor:pointer; border-radius:3px; margin-top:3px;">📍 View Addr</button>
+                </td>
                 <td>${o.product}<br><small>₹${o.price}</small></td>
                 <td>${o.payment}<br>${proofBtn}</td>
                 <td><span style="color:${o.status==='Confirmed'?'green':(o.status==='Rejected'?'red':(o.status==='Shipped'?'#28a745':'orange'))}">${o.status||'Pending'}</span>${reasonHTML}</td>
@@ -187,6 +191,28 @@
         });
     });
 
+    // Function to view detailed address from Orders tab
+    window.viewUserAddress = (mobile) => {
+        get(child(ref(db), `users/${mobile}`)).then(s => {
+            if(s.exists() && s.val().fullAddress) {
+                const fa = s.val().fullAddress;
+                Swal.fire({
+                    title: 'Delivery Address',
+                    html: `<div style="text-align:left; font-size:14px; line-height:1.6;">
+                            <p><b>Street:</b> ${fa.street}</p>
+                            <p><b>Landmark:</b> ${fa.landmark}</p>
+                            <p><b>City:</b> ${fa.city}</p>
+                            <p><b>Pincode:</b> ${fa.pincode}</p>
+                            <p><b>Alt Contact:</b> ${fa.contact}</p>
+                           </div>`,
+                    confirmButtonColor: '#ff9900'
+                });
+            } else {
+                Swal.fire('Notice', 'Detailed address not updated by user yet.', 'info');
+            }
+        });
+    };
+
     window.setTracking = (id) => {
         const trk = document.getElementById(`track_${id}`).value;
         if(!trk) return Swal.fire('Error', 'Please enter a Tracking ID', 'error');
@@ -194,17 +220,31 @@
         .then(() => Swal.fire('Updated!', 'Tracking ID saved and status changed to Shipped.', 'success'));
     };
 
+    // Updated Users List with Detailed Address
     onValue(ref(db, 'users'), s => {
         const ul = document.getElementById('userList'); 
         ul.innerHTML = "";
         s.forEach(c => { 
             const u = c.val(); 
             const lastActive = u.lastLogin ? u.lastLogin : '<span style="color:#ccc">N/A</span>';
-            ul.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.mob}</td><td>${u.address || '-'}</td><td style="font-size: 12px; color: #555;">${lastActive}</td></tr>`; 
+            
+            let addressHTML = "";
+            if(u.fullAddress) {
+                const fa = u.fullAddress;
+                addressHTML = `
+                    <div style="font-size: 11px; color: #444; background: #f9f9f9; padding: 5px; border-radius: 4px;">
+                        <b>St:</b> ${fa.street}<br>
+                        <b>Lm:</b> ${fa.landmark}<br>
+                        <b>City:</b> ${fa.city} - ${fa.pincode}
+                    </div>`;
+            } else {
+                addressHTML = `<span style="color:#999; font-size:11px;">${u.address || '-'}</span>`;
+            }
+
+            ul.innerHTML += `<tr><td><b>${u.name || 'User'}</b></td><td>${u.mob}</td><td>${addressHTML}</td><td style="font-size: 12px; color: #555;">${lastActive}</td></tr>`; 
         });
     });
 
-    // Updated Manage Products with Stock Toggle
     onValue(ref(db, 'products'), (snapshot) => {
         const list = document.getElementById('manageProductList');
         list.innerHTML = "";
