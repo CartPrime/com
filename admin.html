@@ -60,7 +60,6 @@
             border: 1px solid #eee;
         }
 
-        /* Home Checkbox Style */
         .checkbox-group { display: flex; align-items: center; gap: 10px; background: #f0f4f8; padding: 10px; border-radius: 5px; border: 1px dashed #1a1a2e; }
         .checkbox-group input { width: auto; cursor: pointer; }
     </style>
@@ -225,14 +224,14 @@
         const data = {
             name: name,
             price: price,
-            showOnHome: onHome, // NEW: Home page logic
+            showOnHome: onHome,
             desc: document.getElementById('pDesc').value,
             img: Array.from(document.querySelectorAll('.pImgInput')).map(i => i.value).filter(v => v !== "").join(','),
             inStock: true
         };
 
         const dbRef = key ? ref(db, 'products/'+key) : push(ref(db, 'products'));
-        (key ? update(dbRef, data) : push(ref(db, 'products'), data)).then(() => {
+        update(dbRef, data).then(() => {
             Swal.fire('Success', 'Product Saved', 'success').then(() => location.reload());
         });
     };
@@ -260,7 +259,6 @@
         });
     };
 
-    // Remaining Helper Functions
     window.toggleStock = (id, current) => update(ref(db, 'products/' + id), { inStock: !current });
     window.deleteItem = (path) => Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true }).then(r => { if(r.isConfirmed) remove(ref(db, path)); });
     window.addImageField = (v="") => {
@@ -277,6 +275,25 @@
         const trk = document.getElementById(`track_${id}`).value;
         update(ref(db, 'orders/'+id), { trackingID: trk, status: 'Shipped' }).then(() => Swal.fire('Updated!', 'Shipped Status Set.', 'success'));
     };
+
+    // ഓർഡർ ലിസ്റ്റിൽ യൂസറുടെ അഡ്രസ്സ് കാണിക്കാനുള്ള ഫംഗ്ഷൻ
+    window.viewUserAddress = (mobile) => {
+        if (!mobile) return Swal.fire('Error', 'Mobile number not found', 'error');
+        get(child(ref(db), 'users/' + mobile)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                Swal.fire({
+                    title: `Address: ${userData.name || 'Customer'}`,
+                    text: userData.address || "Address not provided.",
+                    icon: 'info',
+                    confirmButtonColor: '#1a1a2e'
+                });
+            } else {
+                Swal.fire('Not Found', 'User profile not found.', 'warning');
+            }
+        });
+    };
+
     onValue(ref(db, 'users'), s => {
         const ul = document.getElementById('userList'); ul.innerHTML = "";
         s.forEach(c => { 
