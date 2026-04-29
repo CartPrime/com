@@ -38,6 +38,32 @@
             padding: 6px 15px; border-radius: 5px; font-weight: bold; display: none; 
         }
 
+        /* Hero / Discount Banner Style */
+        .hero-banner {
+            width: 90%;
+            margin: 20px auto;
+            min-height: 250px;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 50px;
+            color: white;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .hero-content { flex: 1; }
+        .hero-content h1 { font-size: 32px; color: #ff9900; margin-bottom: 10px; }
+        .hero-content p { font-size: 18px; opacity: 0.9; margin-bottom: 15px; }
+        .hero-image { flex: 1; text-align: right; }
+        .hero-image img {
+            height: 220px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+            transition: 0.5s;
+        }
+        .hero-banner:hover .hero-image img { transform: scale(1.05) rotate(-5deg); }
+
         /* Product Grid */
         .container { padding: 40px 5%; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
@@ -49,6 +75,14 @@
         .buy-btn { background: #ff9900; color: #1a1a2e; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
         
         .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 10px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; }
+
+        /* Responsive Banner */
+        @media (max-width: 768px) {
+            .hero-banner { height: auto; padding: 30px; flex-direction: column; text-align: center; width: 95%; }
+            .hero-image { text-align: center; margin-top: 20px; }
+            .hero-image img { height: 150px; }
+            .hero-content h1 { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
@@ -65,6 +99,17 @@
             </div>
         </div>
     </nav>
+
+    <div class="hero-banner">
+        <div class="hero-content">
+            <h1>Special Discount!</h1>
+            <p>Get up to <b>50% OFF</b> on your first order.</p>
+            <button class="buy-btn" style="width: 150px;" onclick="location.href='products.html'">Shop Now</button>
+        </div>
+        <div class="hero-image">
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-shopping-discount-illustration-download-in-svg-png-gif-file-formats--sale-offers-and-pack-e-commerce-illustrations-4541315.png" alt="Discount Banner">
+        </div>
+    </div>
     
     <div class="container">
         <h2 style="margin-bottom: 30px;">Featured Products</h2>
@@ -97,7 +142,6 @@
             const adminBtn = document.getElementById('adminBtn');
 
             if (role) {
-                // ലോഗിൻ ചെയ്തിട്ടുണ്ടെങ്കിൽ Logout ബട്ടൺ സെറ്റ് ചെയ്യുന്നു
                 loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
                 loginLink.href = "#";
                 loginLink.style.borderColor = "#ff4d4d";
@@ -152,7 +196,6 @@
             }
         });
 
-        // Window functions
         window.viewProduct = (name, price, img, desc) => {
             localStorage.setItem('viewProdName', name);
             localStorage.setItem('viewProdPrice', price);
