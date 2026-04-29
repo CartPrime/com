@@ -172,25 +172,35 @@
         onValue(ref(db, 'products'), (snapshot) => {
             productGrid.innerHTML = '';
             const data = snapshot.val();
+            let hasFeatured = false;
+
             if (data) {
                 Object.values(data).forEach(item => {
-                    const firstImg = (item.img || item.image || "").split(',')[0].trim();
-                    const safeName = item.name.replace(/'/g, "\\'");
-                    const isAvailable = item.inStock !== false;
+                    // അഡ്മിൻ പാനലിൽ ടിക്ക് ചെയ്ത പ്രോഡക്റ്റുകൾ മാത്രം ഇവിടെ കാണിക്കുന്നു
+                    if (item.showOnHome === true) {
+                        hasFeatured = true;
+                        const firstImg = (item.img || item.image || "").split(',')[0].trim();
+                        const safeName = item.name.replace(/'/g, "\\'");
+                        const isAvailable = item.inStock !== false;
 
-                    const actionButton = isAvailable 
-                        ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
-                        : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
+                        const actionButton = isAvailable 
+                            ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
+                            : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
 
-                    productGrid.innerHTML += `
-                        <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
-                            <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')">
-                            <h3>${item.name}</h3>
-                            <p>₹${item.price}</p>
-                            ${actionButton}
-                        </div>
-                    `;
+                        productGrid.innerHTML += `
+                            <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
+                                <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')">
+                                <h3>${item.name}</h3>
+                                <p>₹${item.price}</p>
+                                ${actionButton}
+                            </div>
+                        `;
+                    }
                 });
+
+                if (!hasFeatured) {
+                    productGrid.innerHTML = '<p style="color:#666;">No featured products available at the moment.</p>';
+                }
             } else {
                 productGrid.innerHTML = '<p>No products found.</p>';
             }
