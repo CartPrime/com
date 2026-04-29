@@ -76,7 +76,6 @@
         
         .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 10px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; }
 
-        /* Responsive Banner */
         @media (max-width: 768px) {
             .hero-banner { height: auto; padding: 30px; flex-direction: column; text-align: center; width: 95%; }
             .hero-image { text-align: center; margin-top: 20px; }
@@ -93,7 +92,6 @@
             <a href="products.html">Products</a>
             <a href="admin.html" id="adminBtn">Admin</a>
             <a href="login.html" id="loginLink">Login</a>
-
             <div class="user-profile-nav" id="userProfileIcon" onclick="window.location.href='profile.html'">
                 <img id="navProfilePic" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
             </div>
@@ -176,8 +174,8 @@
 
             if (data) {
                 Object.values(data).forEach(item => {
-                    // അഡ്മിൻ പാനലിൽ ടിക്ക് ചെയ്ത പ്രോഡക്റ്റുകൾ മാത്രം ഇവിടെ കാണിക്കുന്നു
-                    if (item.showOnHome === true) {
+                    // ഇവിടെ മാറ്റം വരുത്തി: String ആയാലും Boolean ആയാലും 'true' എന്ന് പരിശോധിക്കും
+                    if (String(item.showOnHome) === "true") {
                         hasFeatured = true;
                         const firstImg = (item.img || item.image || "").split(',')[0].trim();
                         const safeName = item.name.replace(/'/g, "\\'");
@@ -199,7 +197,7 @@
                 });
 
                 if (!hasFeatured) {
-                    productGrid.innerHTML = '<p style="color:#666;">No featured products available at the moment.</p>';
+                    productGrid.innerHTML = '<p style="color:#666; grid-column: 1/-1; text-align: center;">No featured products available.</p>';
                 }
             } else {
                 productGrid.innerHTML = '<p>No products found.</p>';
