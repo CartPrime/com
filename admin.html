@@ -48,6 +48,18 @@
 
         .swal2-popup { border-radius: 15px !important; font-family: 'Segoe UI', sans-serif; }
         .track-input { width: 120px; padding: 5px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        /* User Address Box Fix */
+        .user-addr-box {
+            font-size: 11px; 
+            color: #444; 
+            background: #f9f9f9; 
+            padding: 6px; 
+            border-radius: 4px; 
+            max-width: 200px; 
+            line-height: 1.4; 
+            border: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
@@ -106,7 +118,7 @@
         <h2>Registered Users</h2>
         <table>
             <thead>
-                <tr><th>Name</th><th>Mobile</th><th>Address</th><th>Last Login</th></tr>
+                <tr><th>Name</th><th>Mobile / Email</th><th>Address</th><th>Last Login</th></tr>
             </thead>
             <tbody id="userList"></tbody>
         </table>
@@ -138,7 +150,7 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
         document.querySelectorAll('.tablinks').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active-tab');
-        if(event) event.currentTarget.classList.add('active');
+        if(event && event.currentTarget.classList.contains('tablinks')) event.currentTarget.classList.add('active');
     };
 
     // --- Orders Logic ---
@@ -214,32 +226,41 @@
         });
     };
 
-    // --- Users List Logic (FIXED MOBILE) ---
+    // --- Users List Logic (UPDATED WITH MOBILE IN ADDRESS) ---
     onValue(ref(db, 'users'), s => {
         const ul = document.getElementById('userList'); 
         ul.innerHTML = "";
         s.forEach(c => { 
             const u = c.val(); 
-            const userMobile = c.key; // ഫയർബേസ് കീ ആണ് മൊബൈൽ നമ്പർ
+            const firebaseKey = c.key; 
+            
+            // Priority for display mobile: mob > mobile > email > key
+            const displayMobile = u.mob ? u.mob : (u.mobile ? u.mobile : (u.email ? u.email : firebaseKey));
             const lastActive = u.lastLogin ? u.lastLogin : '<span style="color:#ccc">N/A</span>';
             
             let addressHTML = "";
             if(u.fullAddress) {
                 const fa = u.fullAddress;
                 addressHTML = `
-                    <div style="font-size: 11px; color: #444; background: #f9f9f9; padding: 5px; border-radius: 4px;">
+                    <div class="user-addr-box">
                         <b>St:</b> ${fa.street || '-'}<br>
                         <b>Lm:</b> ${fa.landmark || '-'}<br>
-                        <b>City:</b> ${fa.city || '-'} - ${fa.pincode || '-'}
+                        <b>City:</b> ${fa.city || '-'} - ${fa.pincode || '-'}<br>
+                        <hr style="margin: 4px 0; border: 0; border-top: 1px dashed #ccc;">
+                        <b style="color: #ff9900;">Ph: ${fa.contact || displayMobile}</b>
                     </div>`;
             } else {
-                addressHTML = `<span style="color:#999; font-size:11px;">${u.address || '-'}</span>`;
+                addressHTML = `
+                    <div class="user-addr-box">
+                        ${u.address || '-'}<br>
+                        <b style="color: #ff9900;">Ph: ${displayMobile}</b>
+                    </div>`;
             }
 
             ul.innerHTML += `
                 <tr>
                     <td><b>${u.name || 'User'}</b></td>
-                    <td>${userMobile}</td> 
+                    <td style="font-size: 12px; word-break: break-all;">${displayMobile}</td> 
                     <td>${addressHTML}</td>
                     <td style="font-size: 12px; color: #555;">${lastActive}</td>
                 </tr>`; 
@@ -263,7 +284,7 @@
             const isAvailable = p.inStock !== false;
             list.innerHTML += `
             <tr>
-                <td><img src="${p.img.split(',')[0]}" width="50" style="border-radius:5px;"></td>
+                <td><img src="${p.img ? p.img.split(',')[0] : ''}" width="50" style="border-radius:5px;"></td>
                 <td>${p.name}</td>
                 <td>₹${p.price}</td>
                 <td><button class="action-btn stock-btn ${isAvailable?'edit-btn':'del-btn'}" onclick="toggleStock('${id}', ${isAvailable})">${isAvailable?'In Stock':'Out of Stock'}</button></td>
@@ -279,9 +300,13 @@
     
     window.saveProduct = () => {
         const key = document.getElementById('editKey').value;
+        const name = document.getElementById('pName').value;
+        const price = document.getElementById('pPrice').value;
+        if(!name || !price) return Swal.fire('Error', 'Name and Price required', 'error');
+
         const data = {
-            name: document.getElementById('pName').value,
-            price: document.getElementById('pPrice').value,
+            name: name,
+            price: price,
             desc: document.getElementById('pDesc').value,
             img: Array.from(document.querySelectorAll('.pImgInput')).map(i => i.value).filter(v => v !== "").join(','),
             inStock: true
@@ -300,6 +325,18 @@
             document.getElementById('formTitle').innerText = "Edit Product";
             document.getElementById('submitBtn').innerText = "Update Product";
             document.getElementById('cancelBtn').style.display = "block";
+            
+            const container = document.getElementById('imageInputsContainer');
+            container.innerHTML = '<label>Product Image Link</label>';
+            const images = p.img ? p.img.split(',') : [""];
+            images.forEach((img, index) => {
+                if(index === 0) {
+                    container.innerHTML += `<div style="display: flex; gap: 10px;"><input type="text" class="pImgInput" value="${img}" placeholder="Paste link here"><button type="button" onclick="addImageField()" style="padding:0 15px; background:#1a1a2e; border:none; color:white; border-radius:5px;">+</button></div>`;
+                } else {
+                    addImageField(img);
+                }
+            });
+
             openTab('addProduct');
         });
     };
@@ -323,4 +360,3 @@
 </script>
 </body>
 </html>
-
