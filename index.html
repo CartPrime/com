@@ -127,10 +127,10 @@
                     const firstImg = (item.img || item.image || "").split(',')[0].trim();
                     const safeName = item.name.replace(/'/g, "\\'");
                     
-                    // സ്റ്റോക്ക് ചെക്ക് ചെയ്യുന്നു
+                    
                     const isAvailable = item.inStock !== false;
 
-                    // ബട്ടൺ സെറ്റ് ചെയ്യുന്നു
+                    
                     const actionButton = isAvailable 
                         ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
                         : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
