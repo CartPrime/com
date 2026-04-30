@@ -3,143 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CartPrime Admin - Responsive</title>
+    <title>CartPrime - Admin Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #ff9900; --dark: #1a1a2e; --light-bg: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--light-bg); display: flex; flex-direction: column; min-height: 100vh; }
+        body { background: #f4f7f6; display: flex; min-height: 100vh; }
         
-        /* Sidebar Responsive */
-        .sidebar { 
-            width: 250px; height: 100vh; background: var(--dark); color: white; 
-            padding: 20px; position: fixed; z-index: 1000; transition: 0.3s;
-        }
-        .sidebar h2 { color: var(--primary); margin-bottom: 30px; text-align: center; }
-        .sidebar button { 
-            width: 100%; padding: 12px; background: transparent; border: none; color: white; 
-            text-align: left; cursor: pointer; font-size: 16px; border-radius: 8px; 
-            margin-bottom: 8px; transition: 0.3s; display: flex; align-items: center; gap: 10px;
-        }
-        .sidebar button:hover, .sidebar button.active { background: var(--primary); color: var(--dark); font-weight: bold; }
+        /* Sidebar */
+        .sidebar { width: 250px; height: 100vh; background: #1a1a2e; color: white; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #ff9900; margin-bottom: 30px; text-align: center; }
+        .sidebar button { width: 100%; padding: 12px; background: transparent; border: none; color: white; text-align: left; cursor: pointer; font-size: 16px; border-radius: 5px; margin-bottom: 5px; transition: 0.3s; }
+        .sidebar button:hover, .sidebar button.active { background: #ff9900; color: #1a1a2e; font-weight: bold; }
 
-        /* Main Content */
-        .main-content { margin-left: 250px; padding: 20px; width: calc(100% - 250px); transition: 0.3s; }
-        
-        /* Mobile Navbar */
-        .mobile-header { 
-            display: none; background: var(--dark); color: white; 
-            padding: 15px; justify-content: space-between; align-items: center;
-        }
-
-        .tab-content { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.3s; }
+        .main-content { margin-left: 250px; padding: 30px; width: calc(100% - 250px); }
+        .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .active-tab { display: block !important; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; color: #666; }
+        
+        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; color: white; margin-right: 5px; }
+        .edit-btn { background: #1a73e8; }
+        .del-btn { background: #dc3545; }
 
-        /* Tables & Responsive scroll */
-        .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background: #f8f9fa; color: #555; }
+        /* User Address Box - Ithu Puthiyathaanu */
+        .address-container {
+            font-size: 12px;
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            line-height: 1.4;
+        }
 
-        .action-btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; margin: 2px; }
-        .edit-btn { background: #1a73e8; color: white; }
-        .del-btn { background: #dc3545; color: white; }
-        .proof-btn { background: #6f42c1; color: white; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
-
-        /* Gallery Responsive */
-        #proofGallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .proof-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; cursor: pointer; }
-
-        /* User Address UI */
-        .user-addr-box { font-size: 12px; color: #444; background: #f8f9fa; padding: 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
-
-        /* Media Queries */
+        /* Responsive Fixes */
         @media (max-width: 768px) {
-            .sidebar { left: -250px; }
-            .sidebar.show { left: 0; }
-            .main-content { margin-left: 0; width: 100%; }
-            .mobile-header { display: flex; position: sticky; top: 0; z-index: 1100; }
-            .sidebar h2 { display: none; }
+            .sidebar { width: 60px; padding: 10px 5px; }
+            .sidebar h2, .sidebar button span { display: none; }
+            .main-content { margin-left: 60px; width: calc(100% - 60px); padding: 15px; }
+            table { font-size: 12px; }
         }
     </style>
 </head>
 <body>
 
-<div class="mobile-header">
-    <h3>CartPrime Admin</h3>
-    <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:24px;"><i class="fas fa-bars"></i></button>
-</div>
-
-<div class="sidebar" id="sidebar">
-    <h2>CartPrime</h2>
-    <button onclick="openTab('orders')" class="tablinks active"><i class="fas fa-shopping-cart"></i> Orders</button>
-    <button onclick="openTab('addProduct')" class="tablinks"><i class="fas fa-plus-circle"></i> Add Product</button>
-    <button onclick="openTab('manageProducts')" class="tablinks"><i class="fas fa-tasks"></i> Inventory</button>
-    <button onclick="openTab('users')" class="tablinks"><i class="fas fa-users"></i> Users</button>
-    <button onclick="openTab('paymentProofs')" class="tablinks"><i class="fas fa-image"></i> Proofs</button>
-    <button onclick="location.href='index.html'" style="margin-top:20px; color: #ff4d4d;"><i class="fas fa-home"></i> Exit</button>
+<div class="sidebar">
+    <h2>CP</h2>
+    <button onclick="openTab('orders')" class="tablinks active">📦 <span>Orders</span></button>
+    <button onclick="openTab('addProduct')" class="tablinks">➕ <span>Add Product</span></button>
+    <button onclick="openTab('manageProducts')" class="tablinks">⚙️ <span>Inventory</span></button>
+    <button onclick="openTab('users')" class="tablinks">👥 <span>Users</span></button>
+    <button onclick="location.href='index.html'">🏠 <span>Home</span></button>
 </div>
 
 <div class="main-content">
     <div id="orders" class="tab-content active-tab">
-        <h2>Order Management</h2>
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>Customer</th><th>Details</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="orderList"></tbody>
-            </table>
-        </div>
+        <h2>Orders</h2>
+        <table>
+            <thead><tr><th>User</th><th>Details</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="orderList"></tbody>
+        </table>
     </div>
 
     <div id="addProduct" class="tab-content">
-        <h2 id="formTitle">Product Management</h2>
+        <h2>Add Product</h2>
         <input type="hidden" id="editKey">
-        <div class="form-group"><label>Product Name</label><input type="text" id="pName"></div>
-        <div class="form-group"><label>Price (₹)</label><input type="number" id="pPrice"></div>
-        <div class="form-group" id="imageInputsContainer">
-            <label>Image Links</label>
-            <div style="display:flex; gap:10px;"><input type="text" class="pImgInput" placeholder="Link"><button onclick="addImageField()" class="action-btn edit-btn">+</button></div>
-        </div>
-        <div class="form-group"><label>Description</label><textarea id="pDesc" rows="3"></textarea></div>
-        <button class="edit-btn" style="width:100%; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;" id="submitBtn" onclick="saveProduct()">Save Product</button>
+        <input type="text" id="pName" placeholder="Name" style="width:100%; padding:10px; margin:10px 0;">
+        <input type="number" id="pPrice" placeholder="Price" style="width:100%; padding:10px; margin:10px 0;">
+        <textarea id="pDesc" placeholder="Description" style="width:100%; padding:10px; margin:10px 0;"></textarea>
+        <input type="text" id="pImg" placeholder="Image Link" style="width:100%; padding:10px; margin:10px 0;">
+        <button onclick="saveProduct()" class="action-btn edit-btn" style="width:100%; padding:15px; font-weight:bold;">Save Product</button>
     </div>
 
     <div id="manageProducts" class="tab-content">
-        <h2>Manage Inventory</h2>
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>Img</th><th>Name</th><th>Stock</th><th>Action</th></tr></thead>
-                <tbody id="manageProductList"></tbody>
-            </table>
-        </div>
+        <h2>Manage Products</h2>
+        <table>
+            <thead><tr><th>Img</th><th>Name</th><th>Stock</th><th>Action</th></tr></thead>
+            <tbody id="productList"></tbody>
+        </table>
     </div>
 
     <div id="users" class="tab-content">
-        <h2>Registered Users</h2>
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>User</th><th>Contact</th><th>Address Info</th></tr></thead>
-                <tbody id="userList"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="paymentProofs" class="tab-content">
-        <h2>Payment Gallery</h2>
-        <div id="proofGallery"></div>
+        <h2>Users & Addresses</h2>
+        <table>
+            <thead><tr><th>Name</th><th>Mobile</th><th>Full Address</th></tr></thead>
+            <tbody id="userList"></tbody>
+        </table>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, update, remove, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -153,114 +109,84 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Sidebar logic
-    window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('show');
-    window.openTab = (id) => {
+    window.openTab = (tabId) => {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
         document.querySelectorAll('.tablinks').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active-tab');
-        if(window.innerWidth <= 768) toggleSidebar();
+        document.getElementById(tabId).classList.add('active-tab');
     };
 
-    // Orders Listener
-    onValue(ref(db, 'orders'), snap => {
-        const ol = document.getElementById('orderList');
-        const pg = document.getElementById('proofGallery');
-        ol.innerHTML = ""; pg.innerHTML = "";
-        
-        snap.forEach(c => {
-            const o = c.val(); const id = c.key;
-            ol.innerHTML += `
-                <tr>
-                    <td><b>${o.customer}</b><br><small>${o.mobile}</small></td>
-                    <td>${o.product}<br>₹${o.price}</td>
-                    <td>${o.proof && o.proof !== "No Screenshot" ? `<button class="action-btn proof-btn" onclick="viewProof('${o.proof}')">View</button>` : 'No Proof'}</td>
-                    <td><span style="color:${o.status==='Confirmed'?'green':'orange'}">${o.status || 'Pending'}</span></td>
-                    <td>
-                        <button class="action-btn edit-btn" onclick="updateStatus('${id}', 'Confirmed')">OK</button>
-                        <button class="action-btn del-btn" onclick="deleteItem('orders/${id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-            
-            if(o.proof && o.proof !== "No Screenshot") {
-                pg.innerHTML += `<div class="proof-card"><img src="${o.proof}" onclick="viewProof('${o.proof}')"><p>${o.customer}</p></div>`;
-            }
-        });
-    });
+    // --- USER ADDRESS FIX ---
+    onValue(ref(db, 'users'), snap => {
+        const ul = document.getElementById('userList');
+        ul.innerHTML = "";
+        snap.forEach(child => {
+            const u = child.val();
+            let addressHTML = "";
 
-    // Users List with Real-time Address Check
-    onValue(ref(db, 'users'), s => {
-        const ul = document.getElementById('userList'); ul.innerHTML = "";
-        s.forEach(c => {
-            const u = c.val();
-            let addr = "No detailed address";
+            // Check for fullAddress object (Profile page update)
             if(u.fullAddress) {
                 const fa = u.fullAddress;
-                addr = `St: ${fa.street}, ${fa.landmark}, ${fa.city} - ${fa.pincode}`;
-            } else if(u.address) {
-                addr = u.address;
+                addressHTML = `
+                <div class="address-container">
+                    <b>St:</b> ${fa.street || '-'}<br>
+                    <b>City:</b> ${fa.city || '-'} (${fa.pincode || '-'})<br>
+                    <b>Ph:</b> ${fa.contact || u.mob || child.key}
+                </div>`;
+            } else {
+                // Fallback to old address format
+                addressHTML = `<div class="address-container">${u.address || 'No address set'}</div>`;
             }
 
             ul.innerHTML += `
-                <tr>
-                    <td><b>${u.name || 'User'}</b></td>
-                    <td>${u.mob || c.key}</td>
-                    <td><div class="user-addr-box">${addr}</div></td>
-                </tr>`;
+            <tr>
+                <td>${u.name || 'User'}</td>
+                <td>${u.mob || child.key}</td>
+                <td>${addressHTML}</td>
+            </tr>`;
         });
     });
 
-    // Product Functions
-    onValue(ref(db, 'products'), snap => {
-        const ml = document.getElementById('manageProductList'); ml.innerHTML = "";
+    // --- OTHER LOGIC (Orders & Products) ---
+    onValue(ref(db, 'orders'), snap => {
+        const ol = document.getElementById('orderList'); ol.innerHTML = "";
         snap.forEach(c => {
-            const p = c.val(); const id = c.key;
-            ml.innerHTML += `
-                <tr>
-                    <td><img src="${p.img?p.img.split(',')[0]:''}" width="40" height="40" style="object-fit:cover; border-radius:5px;"></td>
-                    <td>${p.name}</td>
-                    <td><button class="action-btn ${p.inStock!==false?'edit-btn':'del-btn'}" onclick="toggleStock('${id}', ${p.inStock!==false})">${p.inStock!==false?'In':'Out'}</button></td>
-                    <td>
-                        <button class="action-btn edit-btn" onclick="editProduct('${id}')"><i class="fas fa-edit"></i></button>
-                    </td>
-                </tr>`;
+            const o = c.val();
+            ol.innerHTML += `<tr>
+                <td>${o.customer}</td>
+                <td>${o.product}<br>₹${o.price}</td>
+                <td>${o.status || 'Pending'}</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="updateStatus('${c.key}')">Confirm</button>
+                    <button class="action-btn del-btn" onclick="deleteItem('orders/${c.key}')">X</button>
+                </td>
+            </tr>`;
         });
     });
 
-    window.toggleStock = (id, current) => update(ref(db, 'products/' + id), { inStock: !current });
-    window.updateStatus = (id, s) => update(ref(db, 'orders/'+id), {status:s});
-    window.deleteItem = (path) => Swal.fire({title:'Delete?', icon:'warning', showCancelButton:true}).then(r => { if(r.isConfirmed) remove(ref(db, path)) });
-    window.viewProof = (img) => Swal.fire({ imageUrl: img, imageAlt: 'Payment Proof' });
+    onValue(ref(db, 'products'), snap => {
+        const pl = document.getElementById('productList'); pl.innerHTML = "";
+        snap.forEach(c => {
+            const p = c.val();
+            pl.innerHTML += `<tr>
+                <td><img src="${p.img ? p.img.split(',')[0] : ''}" width="40"></td>
+                <td>${p.name}</td>
+                <td>${p.inStock !== false ? 'In' : 'Out'}</td>
+                <td><button class="action-btn del-btn" onclick="deleteItem('products/${c.key}')">Del</button></td>
+            </tr>`;
+        });
+    });
 
+    window.updateStatus = (id) => update(ref(db, 'orders/'+id), {status: 'Confirmed'});
+    window.deleteItem = (path) => remove(ref(db, path));
     window.saveProduct = () => {
-        const key = document.getElementById('editKey').value;
         const data = {
             name: document.getElementById('pName').value,
             price: document.getElementById('pPrice').value,
             desc: document.getElementById('pDesc').value,
-            img: Array.from(document.querySelectorAll('.pImgInput')).map(i => i.value).join(','),
+            img: document.getElementById('pImg').value,
             inStock: true
         };
-        if(key) update(ref(db, 'products/'+key), data).then(()=>location.reload());
-        else push(ref(db, 'products'), data).then(()=>location.reload());
-    };
-
-    window.addImageField = (v="") => {
-        const div = document.createElement('div');
-        div.style = "display:flex; gap:10px; margin-top:8px;";
-        div.innerHTML = `<input type="text" class="pImgInput" value="${v}" style="flex:1;"><button onclick="this.parentElement.remove()" class="action-btn del-btn">X</button>`;
-        document.getElementById('imageInputsContainer').appendChild(div);
-    };
-
-    window.editProduct = (id) => {
-        get(child(ref(db), `products/${id}`)).then(s => {
-            const p = s.val();
-            document.getElementById('pName').value = p.name;
-            document.getElementById('pPrice').value = p.price;
-            document.getElementById('pDesc').value = p.desc || "";
-            document.getElementById('editKey').value = id;
-            openTab('addProduct');
-        });
+        push(ref(db, 'products'), data).then(() => location.reload());
     };
 </script>
 </body>
