@@ -6,82 +6,108 @@
     <title>CartPrime - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f8f9fa; }
-
-        /* Navbar Styles */
-        nav {
-            background-color: #1a1a2e; padding: 10px 5%;
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000; color: white; height: 70px;
+        :root {
+            --primary: #ffae00;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
         }
-        .logo { font-size: 24px; font-weight: bold; color: #ffae00; }
-        .nav-links { display: flex; align-items: center; gap: 20px; }
-        .nav-links a { color: #ffae00; text-decoration: none; font-size: 15px; font-weight: 500; }
 
-        /* Profile Icon Style */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--light); color: #333; line-height: 1.6; }
+
+        /* Navbar Responsive */
+        nav {
+            background-color: var(--dark);
+            padding: 0 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            height: 70px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+        .nav-links { display: flex; align-items: center; gap: 15px; }
+        .nav-links a { color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s; }
+        
+        #loginLink { border: 1.5px solid var(--primary); padding: 5px 15px; border-radius: 20px; }
+        #loginLink:hover { background: var(--primary); color: var(--dark); }
+
         .user-profile-nav {
-            width: 40px; height: 40px; border-radius: 50%;
-            border: 2px solid #ff9900; overflow: hidden;
+            width: 35px; height: 35px; border-radius: 50%;
+            border: 2px solid var(--primary); overflow: hidden;
             cursor: pointer; display: none;
-            background-color: #333;
         }
         .user-profile-nav img { width: 100%; height: 100%; object-fit: cover; }
-        
-        #loginLink { 
-            border: 1px solid #ffae00; padding: 6px 18px; 
-            border-radius: 20px; color: #ffae00; font-weight: 600;
-        }
 
-        #adminBtn { 
-            background: #ffae00; color: #1a1a2e !important; 
-            padding: 6px 15px; border-radius: 5px; font-weight: bold; display: none; 
-        }
-
-        /* Hero / Discount Banner Style */
+        /* Responsive Hero Banner */
         .hero-banner {
-            width: 90%;
-            margin: 20px auto;
-            min-height: 250px;
-            background: linear-gradient(45deg, #1a1a2e, #16213e);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 50px;
-            color: white;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 90%; max-width: 1200px; margin: 20px auto;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            display: flex; flex-wrap: wrap;
+            align-items: center; justify-content: center;
+            padding: 40px; color: white;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
         }
-        .hero-content { flex: 1; }
-        .hero-content h1 { font-size: 32px; color: #ff9900; margin-bottom: 10px; }
-        .hero-content p { font-size: 18px; opacity: 0.9; margin-bottom: 15px; }
-        .hero-image { flex: 1; text-align: right; }
-        .hero-image img {
-            height: 220px;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
-            transition: 0.5s;
-        }
-        .hero-banner:hover .hero-image img { transform: scale(1.05) rotate(-5deg); }
-
-        /* Product Grid */
-        .container { padding: 40px 5%; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
-        .product-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; transition: 0.3s; cursor: pointer; position: relative; }
-        .product-card:hover { transform: translateY(-5px); }
-        .product-card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
-        .product-card h3 { font-size: 17px; color: #333; margin-bottom: 8px; }
-        .product-card p { color: #28a745; font-weight: bold; font-size: 19px; margin-bottom: 12px; }
-        .buy-btn { background: #ff9900; color: #1a1a2e; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+        .hero-content { flex: 1; min-width: 300px; text-align: left; }
+        .hero-content h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); color: var(--primary); margin-bottom: 15px; }
+        .hero-content p { font-size: 1.1rem; margin-bottom: 25px; opacity: 0.9; }
         
-        .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 10px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; }
+        .hero-image { flex: 1; min-width: 250px; display: flex; justify-content: center; }
+        .hero-image img {
+            max-width: 100%; height: auto; max-height: 250px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            transition: transform 0.5s ease;
+        }
+        .hero-banner:hover .hero-image img { transform: scale(1.08) rotate(-3deg); }
 
-        /* Responsive Banner */
-        @media (max-width: 768px) {
-            .hero-banner { height: auto; padding: 30px; flex-direction: column; text-align: center; width: 95%; }
-            .hero-image { text-align: center; margin-top: 20px; }
-            .hero-image img { height: 150px; }
-            .hero-content h1 { font-size: 24px; }
+        /* Responsive Product Grid */
+        .container { padding: 30px 5%; max-width: 1300px; margin: 0 auto; }
+        .container h2 { margin-bottom: 25px; font-weight: 700; border-left: 5px solid var(--primary); padding-left: 15px; }
+        
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 20px; 
+        }
+
+        .product-card { 
+            background: white; border-radius: 15px; padding: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+            text-align: center; transition: 0.3s; display: flex; flex-direction: column;
+        }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .product-card img { width: 100%; height: 160px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; }
+        .product-card h3 { font-size: 16px; color: #333; margin-bottom: 10px; height: 40px; overflow: hidden; }
+        .product-card p { color: var(--success); font-weight: 800; font-size: 1.2rem; margin-bottom: 15px; }
+        
+        .buy-btn { 
+            background: var(--primary); color: var(--dark); border: none; 
+            padding: 12px; border-radius: 8px; cursor: pointer; 
+            font-weight: 700; width: 100%; margin-top: auto; transition: 0.2s;
+        }
+        .buy-btn:active { transform: scale(0.96); }
+        .out-of-stock-btn { background: #e0e0e0; color: #888; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-top: auto; cursor: not-allowed; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            nav { padding: 0 3%; }
+            .logo { font-size: 1.2rem; }
+            .nav-links { gap: 10px; }
+            .nav-links a { font-size: 12px; }
+            
+            .hero-banner { padding: 30px 20px; text-align: center; }
+            .hero-content { text-align: center; min-width: 100%; }
+            .hero-image { margin-top: 20px; min-width: 100%; }
+            .hero-image img { max-height: 180px; }
+            
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .product-card { padding: 10px; }
+            .product-card h3 { font-size: 14px; }
         }
     </style>
 </head>
@@ -90,10 +116,9 @@
     <nav>
         <div class="logo">CartPrime</div>
         <div class="nav-links">
-            <a href="products.html">Products</a>
-            <a href="admin.html" id="adminBtn">Admin</a>
+            <a href="products.html">Shop</a>
+            <a href="admin.html" id="adminBtn" style="display:none;">Admin</a>
             <a href="login.html" id="loginLink">Login</a>
-
             <div class="user-profile-nav" id="userProfileIcon" onclick="window.location.href='profile.html'">
                 <img id="navProfilePic" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
             </div>
@@ -104,21 +129,22 @@
         <div class="hero-content">
             <h1>Special Discount!</h1>
             <p>Get up to <b>50% OFF</b> on your first order.</p>
-            <button class="buy-btn" style="width: 150px;" onclick="location.href='products.html'">Shop Now</button>
+            <button class="buy-btn" style="width: auto; padding: 12px 30px;" onclick="location.href='products.html'">Shop Now</button>
         </div>
         <div class="hero-image">
-            <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-shopping-discount-illustration-download-in-svg-png-gif-file-formats--sale-offers-and-pack-e-commerce-illustrations-4541315.png" alt="...">
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-shopping-discount-illustration-download-in-svg-png-gif-file-formats--sale-offers-and-pack-e-commerce-illustrations-4541315.png" alt="Sale">
         </div>
     </div>
     
     <div class="container">
-        <h2 style="margin-bottom: 30px;">Featured Products</h2>
+        <h2>Featured Products</h2>
         <div class="product-grid" id="productGrid">
-            <p>Loading products...</p>
+            <p style="grid-column: 1/-1; text-align: center; padding: 50px;">Loading awesome products...</p>
         </div>
     </div>
 
     <script type="module">
+        // --- Firebase setup stays exactly the same ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -134,6 +160,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // UI Logic
         document.addEventListener('DOMContentLoaded', () => {
             const role = localStorage.getItem('userRole');
             const userMob = localStorage.getItem('userMob');
@@ -142,8 +169,7 @@
             const adminBtn = document.getElementById('adminBtn');
 
             if (role) {
-                loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                loginLink.href = "#";
+                loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i>';
                 loginLink.style.borderColor = "#ff4d4d";
                 loginLink.style.color = "#ff4d4d";
                 
@@ -162,9 +188,6 @@
                         document.getElementById('navProfilePic').src = userData.profilePic;
                     }
                 });
-            } else {
-                loginLink.style.display = 'inline-block';
-                profileIcon.style.display = 'none';
             }
         });
 
@@ -180,11 +203,11 @@
 
                     const actionButton = isAvailable 
                         ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
-                        : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
+                        : `<button class="out-of-stock-btn" disabled>Sold Out</button>`;
 
                     productGrid.innerHTML += `
-                        <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
-                            <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')">
+                        <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.8'}">
+                            <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')" alt="${item.name}">
                             <h3>${item.name}</h3>
                             <p>₹${item.price}</p>
                             ${actionButton}
@@ -196,6 +219,7 @@
             }
         });
 
+        // Global functions for buttons
         window.viewProduct = (name, price, img, desc) => {
             localStorage.setItem('viewProdName', name);
             localStorage.setItem('viewProdPrice', price);
