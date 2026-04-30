@@ -38,19 +38,30 @@
             padding: 6px 15px; border-radius: 5px; font-weight: bold; display: none; 
         }
 
-        /* Hero Banner Style */
+        /* Hero / Discount Banner Style */
         .hero-banner {
-            width: 90%; margin: 20px auto; min-height: 250px;
+            width: 90%;
+            margin: 20px auto;
+            min-height: 250px;
             background: linear-gradient(45deg, #1a1a2e, #16213e);
-            border-radius: 15px; display: flex; align-items: center;
-            justify-content: space-between; padding: 20px 50px; color: white;
-            overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 50px;
+            color: white;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         .hero-content { flex: 1; }
         .hero-content h1 { font-size: 32px; color: #ff9900; margin-bottom: 10px; }
         .hero-content p { font-size: 18px; opacity: 0.9; margin-bottom: 15px; }
         .hero-image { flex: 1; text-align: right; }
-        .hero-image img { height: 220px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3)); transition: 0.5s; }
+        .hero-image img {
+            height: 220px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+            transition: 0.5s;
+        }
         .hero-banner:hover .hero-image img { transform: scale(1.05) rotate(-5deg); }
 
         /* Product Grid */
@@ -62,8 +73,10 @@
         .product-card h3 { font-size: 17px; color: #333; margin-bottom: 8px; }
         .product-card p { color: #28a745; font-weight: bold; font-size: 19px; margin-bottom: 12px; }
         .buy-btn { background: #ff9900; color: #1a1a2e; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+        
         .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 10px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; }
 
+        /* Responsive Banner */
         @media (max-width: 768px) {
             .hero-banner { height: auto; padding: 30px; flex-direction: column; text-align: center; width: 95%; }
             .hero-image { text-align: center; margin-top: 20px; }
@@ -80,6 +93,7 @@
             <a href="products.html">Products</a>
             <a href="admin.html" id="adminBtn">Admin</a>
             <a href="login.html" id="loginLink">Login</a>
+
             <div class="user-profile-nav" id="userProfileIcon" onclick="window.location.href='profile.html'">
                 <img id="navProfilePic" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
             </div>
@@ -93,7 +107,7 @@
             <button class="buy-btn" style="width: 150px;" onclick="location.href='products.html'">Shop Now</button>
         </div>
         <div class="hero-image">
-            <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-shopping-discount-illustration-download-in-svg-png-gif-file-formats--sale-offers-and-pack-e-commerce-illustrations-4541315.png" alt="">
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-shopping-discount-illustration-download-in-svg-png-gif-file-formats--sale-offers-and-pack-e-commerce-illustrations-4541315.png" alt="...">
         </div>
     </div>
     
@@ -127,9 +141,6 @@
             const profileIcon = document.getElementById('userProfileIcon');
             const adminBtn = document.getElementById('adminBtn');
 
-            // തുടക്കത്തിൽ തന്നെ അഡ്മിൻ ബട്ടൺ ഹൈഡ് ചെയ്യുന്നു
-            adminBtn.style.display = 'none';
-
             if (role) {
                 loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
                 loginLink.href = "#";
@@ -143,11 +154,7 @@
                 };
 
                 profileIcon.style.display = 'block';
-
-                // റോൾ 'admin' ആണെങ്കിൽ മാത്രം ബട്ടൺ കാണിക്കും
-                if (role === 'admin') {
-                    adminBtn.style.display = 'inline-block';
-                }
+                if(role === 'admin') adminBtn.style.display = 'inline-block';
 
                 onValue(ref(db, 'users/' + userMob), (snapshot) => {
                     const userData = snapshot.val();
@@ -158,7 +165,6 @@
             } else {
                 loginLink.style.display = 'inline-block';
                 profileIcon.style.display = 'none';
-                adminBtn.style.display = 'none';
             }
         });
 
@@ -166,35 +172,25 @@
         onValue(ref(db, 'products'), (snapshot) => {
             productGrid.innerHTML = '';
             const data = snapshot.val();
-            let hasFeatured = false;
-
             if (data) {
                 Object.values(data).forEach(item => {
-                    // Home Page ഫിൽട്ടറിംഗ് കൃത്യമായി നടക്കാൻ String check ഉപയോഗിക്കുന്നു
-                    if (String(item.showOnHome) === "true") {
-                        hasFeatured = true;
-                        const firstImg = (item.img || item.image || "").split(',')[0].trim();
-                        const safeName = item.name.replace(/'/g, "\\'");
-                        const isAvailable = item.inStock !== false;
+                    const firstImg = (item.img || item.image || "").split(',')[0].trim();
+                    const safeName = item.name.replace(/'/g, "\\'");
+                    const isAvailable = item.inStock !== false;
 
-                        const actionButton = isAvailable 
-                            ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
-                            : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
+                    const actionButton = isAvailable 
+                        ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
+                        : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
 
-                        productGrid.innerHTML += `
-                            <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
-                                <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')">
-                                <h3>${item.name}</h3>
-                                <p>₹${item.price}</p>
-                                ${actionButton}
-                            </div>
-                        `;
-                    }
+                    productGrid.innerHTML += `
+                        <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
+                            <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')">
+                            <h3>${item.name}</h3>
+                            <p>₹${item.price}</p>
+                            ${actionButton}
+                        </div>
+                    `;
                 });
-
-                if (!hasFeatured) {
-                    productGrid.innerHTML = '<p style="color:#666; grid-column: 1/-1; text-align: center;">No featured products available.</p>';
-                }
             } else {
                 productGrid.innerHTML = '<p>No products found.</p>';
             }
