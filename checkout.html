@@ -15,7 +15,6 @@
         .item-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
         .item-info img { width: 70px; height: 70px; object-fit: contain; border-radius: 8px; }
 
-        /* Address Section Styling */
         .address-section { background: #fff9f0; padding: 15px; border-radius: 10px; border-left: 4px solid #ff9900; margin-bottom: 20px; position: relative; }
         .address-section h4 { font-size: 13px; color: #ff9900; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
         .change-addr-btn { position: absolute; top: 15px; right: 15px; font-size: 11px; color: #ff9900; text-decoration: none; font-weight: bold; }
@@ -83,14 +82,12 @@
     const pImg = localStorage.getItem('tempProdImg');
     const userMob = localStorage.getItem('userMob');
 
-    // Product UI Setup
     if (pName) {
         document.getElementById('displayName').innerText = pName;
         document.getElementById('displayPrice').innerText = pPrice;
         document.getElementById('displayImg').src = pImg;
     }
 
-    // Fetch Address from Firebase (Profile)
     onValue(ref(db, 'users/' + userMob), (snap) => {
         const user = snap.val();
         if (user) {
@@ -138,7 +135,7 @@
                 });
             }, 3000);
         } else {
-            saveOrderToFirebase("Cash on Delivery", "No Screenshot");
+            saveOrderToFirebase("No Screenshot");
         }
     };
 
@@ -156,6 +153,28 @@
         };
 
         push(ref(db, 'orders'), orderInfo).then(() => {
+            
+            // --- OneSignal Notification Logic Start ---
+            const notificationBody = {
+                app_id: "12215d52-ff48-476d-8f20-08396274d66e", // ഇവിടെ നിങ്ങളുടെ വൺസിഗ്നൽ APP ID നൽകുക
+                included_segments: ["All"],
+                headings: { "en": "New Order Recevide 📦" },
+                contents: { "en": `${orderInfo.customer} customer ₹${orderInfo.price} Big Order Arrivell` }
+            };
+
+            fetch("https://onesignal.com/api/v1/notifications", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": "Basic os_v2_app_ciqv2ux7jbdw3dzaba4we5gwnzeiyjmezigub3ffyxx7l3qvccbo4txm6ap5y4yszaiqvlhi55ikqzijpcxueat7u2r5dijpbuu42ha" // ഇവിടെ നിങ്ങളുടെ REST API KEY നൽകുക
+                },
+                body: JSON.stringify(notificationBody)
+            })
+            .then(res => res.json())
+            .then(data => console.log("OneSignal Success:", data))
+            .catch(err => console.error("OneSignal Error:", err));
+            // --- OneSignal Notification Logic End ---
+
             Swal.fire('Success!', 'Order Placed successfully', 'success')
             .then(() => { window.location.href = 'index.html'; });
         });
