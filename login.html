@@ -7,78 +7,159 @@
     <title>CartPrime - Secure Auth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: white; width: 100%; max-width: 450px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
-        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: bold; color: #888; }
-        .tab.active { color: #ff9900; border-bottom: 3px solid #ff9900; }
-        .form-box { display: none; }
-        .form-box.active { display: block; }
-        .input-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: #555; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
-        .btn { width: 100%; padding: 13px; background: #ff9900; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 16px; color: white; }
+        :root {
+            --primary: #ff9900;
+            --dark-bg: #1a1a2e;
+            --light-bg: #f4f7f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* Google Button Style */
-        .google-btn {
-            width: 100%; padding: 12px; background: white; border: 1px solid #ddd; 
-            border-radius: 8px; cursor: pointer; margin-top: 15px; font-size: 14px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+        body { 
+            background: linear-gradient(135deg, var(--dark-bg), #16213e); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 15px; 
+        }
+
+        .auth-card { 
+            background: white; 
+            width: 100%; 
+            max-width: 420px; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
+        }
+
+        .tabs { 
+            display: flex; 
+            margin-bottom: 25px; 
+            background: #f1f1f1;
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+        .tab { 
+            flex: 1; 
+            padding: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+            font-weight: 700; 
+            color: #666; 
+            border-radius: 10px;
             transition: 0.3s;
         }
-        .google-btn:hover { background: #f1f1f1; }
-        .divider { text-align: center; margin: 15px 0; color: #888; font-size: 12px; position: relative; }
-        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 40%; height: 1px; background: #ddd; }
+
+        .tab.active { 
+            color: var(--primary); 
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-box { display: none; animation: fadeIn 0.4s ease; }
+        .form-box.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #444; }
+        
+        input { 
+            width: 100%; 
+            padding: 12px 15px; 
+            border: 1.5px solid #eee; 
+            border-radius: 10px; 
+            outline: none; 
+            font-size: 15px;
+            transition: 0.3s;
+        }
+        
+        input:focus { border-color: var(--primary); background: #fffcf5; }
+
+        .btn { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--primary); 
+            border: none; 
+            font-weight: bold; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            font-size: 16px; 
+            color: white; 
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        
+        .google-btn {
+            width: 100%; padding: 12px; background: white; border: 1.5px solid #eee; 
+            border-radius: 10px; cursor: pointer; margin-top: 15px; font-size: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-weight: 600; color: #555; transition: 0.3s;
+        }
+        .google-btn:hover { background: #fafafa; border-color: #ddd; }
+
+        .divider { text-align: center; margin: 20px 0; color: #aaa; font-size: 13px; position: relative; }
+        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: #eee; }
         .divider::before { left: 0; } .divider::after { right: 0; }
 
-        .swal2-popup { border-radius: 20px !important; }
+        /* Small screen adjustments */
+        @media (max-width: 400px) {
+            .auth-card { padding: 20px; }
+            .btn { font-size: 15px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="auth-card">
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('login')">Login</div>
-        <div class="tab" onclick="switchTab('register')">Register</div>
+        <div class="tab active" id="tab-login" onclick="switchTab('login')">Login</div>
+        <div class="tab" id="tab-register" onclick="switchTab('register')">Register</div>
     </div>
 
     <div id="loginBox" class="form-box active">
         <div class="input-group">
             <label>Mobile / Email</label>
-            <input type="text" id="lUser" placeholder="Mobile or Email">
+            <input type="text" id="lUser" placeholder="Enter Mobile or Email">
         </div>
         <div class="input-group">
             <label>Password</label>
-            <input type="password" id="lPass" placeholder="Enter password">
+            <input type="password" id="lPass" placeholder="••••••••">
         </div>
-        <button class="btn" onclick="login()">Login</button>
+        <button class="btn" onclick="login()">Sign In</button>
         
-        <div class="divider">OR</div>
+        <div class="divider">OR CONTINUE WITH</div>
         
         <button class="google-btn" onclick="googleLogin()">
-            <img src="https://img.icons8.com/color/24/000000/google-logo.png"/> Continue with Google
+            <img src="https://img.icons8.com/color/20/000000/google-logo.png"/> Google
         </button>
     </div>
 
     <div id="registerBox" class="form-box">
-        <div class="input-group"><label>Shop Name</label><input type="text" id="rName"></div>
-        <div class="input-group"><label>Mobile Number</label><input type="tel" id="rMob"></div>
+        <div class="input-group"><label>Shop/User Name</label><input type="text" id="rName" placeholder="Full Name"></div>
+        <div class="input-group"><label>Mobile Number</label><input type="tel" id="rMob" placeholder="10 Digit Number"></div>
         <div class="input-group"><label>House No./Building</label><input type="text" id="rHouse"></div>
-        <div class="input-group"><label>Area/City</label><input type="text" id="rArea"></div>
         <div style="display:flex; gap:10px;">
             <div class="input-group" style="flex:1;"><label>Pincode</label><input type="number" id="rPin"></div>
             <div class="input-group" style="flex:1;"><label>State</label><input type="text" id="rState" value="Kerala"></div>
         </div>
-        <div class="input-group"><label>Set Password</label><input type="password" id="rPass"></div>
-        <button class="btn" onclick="register()">Register Shop</button>
+        <div class="input-group"><label>Set Password</label><input type="password" id="rPass" placeholder="Min. 6 characters"></div>
+        <button class="btn" onclick="register()">Create Account</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -94,118 +175,98 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // SweetAlert Helper
     const showAlert = (title, text, icon) => {
         return Swal.fire({
-            title: title,
-            text: text,
-            icon: icon,
+            title: title, text: text, icon: icon,
             confirmButtonColor: '#ff9900',
-            timer: icon === 'success' ? 2000 : null,
-            timerProgressBar: icon === 'success',
+            timer: icon === 'success' ? 1500 : null,
             showConfirmButton: icon !== 'success',
         });
     };
 
-    // --- Google Login Function ---
+    // Google Login
     window.googleLogin = async () => {
         try {
+            // Mobile-il popup block aakan sadhyatha ullathukondu error handle cheyyanam
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Google ലോഗിൻ ചെയ്യുമ്പോൾ ഡാറ്റാബേസിലും സേവ് ചെയ്യുന്നു
             await update(ref(db, 'users/' + user.uid), {
                 name: user.displayName,
                 email: user.email,
                 profilePic: user.photoURL,
-                lastLogin: new Date().toLocaleString('en-IN')
+                lastLogin: new Date().toLocaleString('en-IN'),
+                role: 'user'
             });
 
             localStorage.setItem('userRole', 'user');
-            localStorage.setItem('userMob', user.uid); // UID ആവും ഇവിടെ ഐഡി
+            localStorage.setItem('userMob', user.uid);
 
-            showAlert("Welcome!", `Hello ${user.displayName}`, "success").then(() => {
+            showAlert("Welcome!", user.displayName, "success").then(() => {
                 window.location.href = 'index.html';
             });
         } catch (error) {
-            showAlert("Error", "Google Login Failed: " + error.message, "error");
+            console.error(error);
+            showAlert("Login Error", "Please try again or use another method.", "error");
         }
     };
 
+    // Traditional Login
     window.login = async () => {
         const userVal = document.getElementById('lUser').value.trim();
         const passVal = document.getElementById('lPass').value.trim();
 
-        if(!userVal || !passVal) {
-            showAlert("Required", "Please fill all fields", "warning");
-            return;
-        }
+        if(!userVal || !passVal) return showAlert("Wait", "Fill all fields", "warning");
 
         if(userVal.includes('@')) {
             try {
                 await signInWithEmailAndPassword(auth, userVal, passVal);
                 localStorage.setItem('userRole', 'admin');
-                showAlert("Welcome!", "Welcome Admin!", "success").then(() => {
-                    window.location.href = 'index.html';
-                });
-                return;
-            } catch (error) {
-                showAlert("Error", "Admin Login Failed", "error");
-                return;
-            }
+                window.location.href = 'index.html';
+            } catch (e) { showAlert("Error", "Admin credentials invalid", "error"); }
+            return;
         }
 
         get(child(ref(db), `users/${userVal}`)).then((snapshot) => {
-            if (snapshot.exists()) {
-                const user = snapshot.val();
-                if(user.pass === passVal) {
-                    update(ref(db, 'users/' + userVal), { lastLogin: new Date().toLocaleString('en-IN') }).then(() => {
-                        localStorage.setItem('userRole', 'user');
-                        localStorage.setItem('userMob', userVal); 
-                        showAlert("Success!", "Login Successful!", "success").then(() => {
-                            window.location.href = 'index.html';
-                        });
-                    });
-                } else {
-                    showAlert("Failed", "Wrong Password!", "error");
-                }
+            if (snapshot.exists() && snapshot.val().pass === passVal) {
+                localStorage.setItem('userRole', 'user');
+                localStorage.setItem('userMob', userVal); 
+                window.location.href = 'index.html';
             } else {
-                showAlert("No Account", "No account found!", "info");
+                showAlert("Error", "Invalid Login Details", "error");
             }
         });
     };
 
+    // Register Function
     window.register = async () => {
         const name = document.getElementById('rName').value.trim();
         const mob = document.getElementById('rMob').value.trim();
-        const house = document.getElementById('rHouse').value.trim();
-        const area = document.getElementById('rArea').value.trim();
-        const pin = document.getElementById('rPin').value.trim();
         const pass = document.getElementById('rPass').value.trim();
 
-        if (name && mob && pass) {
-            get(child(ref(db), `users/${mob}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    showAlert("Already User", "Mobile Number registered!", "warning");
-                } else {
-                    const address = `${house}, ${area}, Pin: ${pin}`;
-                    set(ref(db, 'users/' + mob), { name, mob, address, pass, lastLogin: "First Time" }).then(() => {
-                        showAlert("Congratulations!", "Success!", "success").then(() => {
-                            window.location.reload();
-                        });
-                    });
-                }
-            });
-        } else {
-            showAlert("Missing Details", "Please fill mandatory fields!", "warning");
+        if (!name || mob.length < 10 || pass.length < 6) {
+            return showAlert("Invalid", "Please enter valid details (Pass min 6 chars)", "warning");
         }
+
+        const snapshot = await get(child(ref(db), `users/${mob}`));
+        if (snapshot.exists()) return showAlert("Wait", "Mobile already registered!", "warning");
+
+        await set(ref(db, 'users/' + mob), { 
+            name, mob, pass, 
+            address: document.getElementById('rHouse').value,
+            lastLogin: "New User" 
+        });
+
+        showAlert("Success", "Account Created!", "success").then(() => window.location.reload());
     };
 
+    // Tab Switcher
     window.switchTab = (t) => {
         document.getElementById('loginBox').classList.toggle('active', t === 'login');
         document.getElementById('registerBox').classList.toggle('active', t === 'register');
-        const tabs = document.getElementsByClassName('tab');
-        tabs[0].classList.toggle('active', t === 'login');
-        tabs[1].classList.toggle('active', t === 'register');
+        document.getElementById('tab-login').classList.toggle('active', t === 'login');
+        document.getElementById('tab-register').classList.toggle('active', t === 'register');
     };
 </script>
 </body>
