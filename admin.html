@@ -9,13 +9,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #f4f7f6; display: flex; min-height: 100vh; }
         
-        /* Sidebar */
         .sidebar { width: 250px; height: 100vh; background: #1a1a2e; color: white; padding: 20px; position: fixed; }
         .sidebar h2 { color: #ff9900; margin-bottom: 30px; text-align: center; }
         .sidebar button { width: 100%; padding: 12px; background: transparent; border: none; color: white; text-align: left; cursor: pointer; font-size: 16px; border-radius: 5px; margin-bottom: 5px; transition: 0.3s; }
         .sidebar button:hover, .sidebar button.active { background: #ff9900; color: #1a1a2e; font-weight: bold; }
 
         .main-content { margin-left: 250px; padding: 30px; width: calc(100% - 250px); }
+        .top-nav { background: white; padding: 15px 30px; margin-bottom: 25px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
         .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .active-tab { display: block !important; }
 
@@ -23,79 +24,67 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #fafafa; color: #666; }
         
-        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; color: white; margin-right: 5px; }
+        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; color: white; margin-right: 5px; font-weight: bold; }
         .edit-btn { background: #1a73e8; }
         .del-btn { background: #dc3545; }
 
-        /* User Address Box - Ithu Puthiyathaanu */
-        .address-container {
-            font-size: 12px;
-            background: #f9f9f9;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            line-height: 1.4;
-        }
-
-        /* Responsive Fixes */
-        @media (max-width: 768px) {
-            .sidebar { width: 60px; padding: 10px 5px; }
-            .sidebar h2, .sidebar button span { display: none; }
-            .main-content { margin-left: 60px; width: calc(100% - 60px); padding: 15px; }
-            table { font-size: 12px; }
+        /* User Address UI Fix */
+        .user-addr-box {
+            font-size: 11px; color: #444; background: #f9f9f9; padding: 8px; 
+            border-radius: 6px; line-height: 1.5; border-left: 3px solid #ff9900;
         }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h2>CP</h2>
-    <button onclick="openTab('orders')" class="tablinks active">📦 <span>Orders</span></button>
-    <button onclick="openTab('addProduct')" class="tablinks">➕ <span>Add Product</span></button>
-    <button onclick="openTab('manageProducts')" class="tablinks">⚙️ <span>Inventory</span></button>
-    <button onclick="openTab('users')" class="tablinks">👥 <span>Users</span></button>
-    <button onclick="location.href='index.html'">🏠 <span>Home</span></button>
+    <h2>CartPrime</h2>
+    <button onclick="openTab('orders')" class="tablinks active" id="defaultOpen">📦 Orders</button>
+    <button onclick="openTab('addProduct')" class="tablinks">➕ Add Product</button>
+    <button onclick="openTab('manageProducts')" class="tablinks">⚙️ Inventory</button>
+    <button onclick="openTab('users')" class="tablinks">👥 Users List</button>
 </div>
 
 <div class="main-content">
     <div id="orders" class="tab-content active-tab">
         <h2>Orders</h2>
         <table>
-            <thead><tr><th>User</th><th>Details</th><th>Status</th><th>Action</th></tr></thead>
+            <thead>
+                <tr><th>Customer</th><th>Product</th><th>Status</th><th>Action</th></tr>
+            </thead>
             <tbody id="orderList"></tbody>
+        </table>
+    </div>
+
+    <div id="users" class="tab-content">
+        <h2>Users & Live Addresses</h2>
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Mobile</th><th>Current Address</th></tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+    </div>
+
+    <div id="manageProducts" class="tab-content">
+        <h2>Inventory</h2>
+        <table>
+            <thead><tr><th>Img</th><th>Name</th><th>Stock</th><th>Action</th></tr></thead>
+            <tbody id="manageProductList"></tbody>
         </table>
     </div>
 
     <div id="addProduct" class="tab-content">
         <h2>Add Product</h2>
-        <input type="hidden" id="editKey">
-        <input type="text" id="pName" placeholder="Name" style="width:100%; padding:10px; margin:10px 0;">
-        <input type="number" id="pPrice" placeholder="Price" style="width:100%; padding:10px; margin:10px 0;">
-        <textarea id="pDesc" placeholder="Description" style="width:100%; padding:10px; margin:10px 0;"></textarea>
-        <input type="text" id="pImg" placeholder="Image Link" style="width:100%; padding:10px; margin:10px 0;">
-        <button onclick="saveProduct()" class="action-btn edit-btn" style="width:100%; padding:15px; font-weight:bold;">Save Product</button>
-    </div>
-
-    <div id="manageProducts" class="tab-content">
-        <h2>Manage Products</h2>
-        <table>
-            <thead><tr><th>Img</th><th>Name</th><th>Stock</th><th>Action</th></tr></thead>
-            <tbody id="productList"></tbody>
-        </table>
-    </div>
-
-    <div id="users" class="tab-content">
-        <h2>Users & Addresses</h2>
-        <table>
-            <thead><tr><th>Name</th><th>Mobile</th><th>Full Address</th></tr></thead>
-            <tbody id="userList"></tbody>
-        </table>
+        <input type="text" id="pName" placeholder="Product Name" style="width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ddd;">
+        <input type="number" id="pPrice" placeholder="Price" style="width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ddd;">
+        <button class="btn-save" onclick="saveProduct()" style="background:#28a745; color:white; border:none; padding:12px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold;">Save Product</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, onValue, update, remove, get, child, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -115,78 +104,72 @@
         document.getElementById(tabId).classList.add('active-tab');
     };
 
-    // --- USER ADDRESS FIX ---
-    onValue(ref(db, 'users'), snap => {
-        const ul = document.getElementById('userList');
+    // --- Users List: Profile page update cheyumpol live aayi maaran ---
+    onValue(ref(db, 'users'), s => {
+        const ul = document.getElementById('userList'); 
         ul.innerHTML = "";
-        snap.forEach(child => {
-            const u = child.val();
+        s.forEach(c => { 
+            const u = c.val(); 
+            const displayMobile = u.mob || u.mobile || c.key;
+            
             let addressHTML = "";
-
-            // Check for fullAddress object (Profile page update)
+            // Profile page-il "fullAddress" save aayittundenkil athu kaanikuka
             if(u.fullAddress) {
                 const fa = u.fullAddress;
                 addressHTML = `
-                <div class="address-container">
-                    <b>St:</b> ${fa.street || '-'}<br>
-                    <b>City:</b> ${fa.city || '-'} (${fa.pincode || '-'})<br>
-                    <b>Ph:</b> ${fa.contact || u.mob || child.key}
-                </div>`;
+                    <div class="user-addr-box">
+                        <b>House:</b> ${fa.street || '-'}<br>
+                        <b>Area:</b> ${fa.landmark || '-'}<br>
+                        <b>City/Pin:</b> ${fa.city || '-'} - ${fa.pincode || '-'}<br>
+                        <b>Alternative Ph:</b> ${fa.contact || '-'}
+                    </div>`;
             } else {
-                // Fallback to old address format
-                addressHTML = `<div class="address-container">${u.address || 'No address set'}</div>`;
+                // Profile update cheythilla enkil register cheytha samayathe address
+                addressHTML = `<div class="user-addr-box">${u.address || 'No Address Updated'}</div>`;
             }
 
             ul.innerHTML += `
-            <tr>
-                <td>${u.name || 'User'}</td>
-                <td>${u.mob || child.key}</td>
-                <td>${addressHTML}</td>
-            </tr>`;
+                <tr>
+                    <td><b>${u.name || 'User'}</b></td>
+                    <td>${displayMobile}</td> 
+                    <td>${addressHTML}</td>
+                </tr>`; 
         });
     });
 
-    // --- OTHER LOGIC (Orders & Products) ---
+    // --- Orders Update ---
     onValue(ref(db, 'orders'), snap => {
-        const ol = document.getElementById('orderList'); ol.innerHTML = "";
-        snap.forEach(c => {
-            const o = c.val();
-            ol.innerHTML += `<tr>
-                <td>${o.customer}</td>
-                <td>${o.product}<br>₹${o.price}</td>
+        const ol = document.getElementById('orderList'); 
+        ol.innerHTML = "";
+        snap.forEach(c => { 
+            const o = c.val(); 
+            ol.innerHTML += `
+            <tr>
+                <td><b>${o.customer}</b><br><small>${o.mobile}</small></td>
+                <td>${o.product}<br><small>₹${o.price}</small></td>
                 <td>${o.status || 'Pending'}</td>
                 <td>
                     <button class="action-btn edit-btn" onclick="updateStatus('${c.key}')">Confirm</button>
-                    <button class="action-btn del-btn" onclick="deleteItem('orders/${c.key}')">X</button>
+                    <button class="action-btn del-btn" onclick="deleteItem('orders/${c.key}')">Delete</button>
                 </td>
             </tr>`;
         });
     });
 
-    onValue(ref(db, 'products'), snap => {
-        const pl = document.getElementById('productList'); pl.innerHTML = "";
-        snap.forEach(c => {
-            const p = c.val();
-            pl.innerHTML += `<tr>
-                <td><img src="${p.img ? p.img.split(',')[0] : ''}" width="40"></td>
-                <td>${p.name}</td>
-                <td>${p.inStock !== false ? 'In' : 'Out'}</td>
-                <td><button class="action-btn del-btn" onclick="deleteItem('products/${c.key}')">Del</button></td>
-            </tr>`;
-        });
-    });
-
-    window.updateStatus = (id) => update(ref(db, 'orders/'+id), {status: 'Confirmed'});
+    // --- Basic Admin Functions ---
+    window.updateStatus = (id) => update(ref(db, 'orders/'+id), {status:'Confirmed'});
     window.deleteItem = (path) => remove(ref(db, path));
     window.saveProduct = () => {
         const data = {
             name: document.getElementById('pName').value,
             price: document.getElementById('pPrice').value,
-            desc: document.getElementById('pDesc').value,
-            img: document.getElementById('pImg').value,
             inStock: true
         };
-        push(ref(db, 'products'), data).then(() => location.reload());
+        push(ref(db, 'products'), data).then(() => {
+            Swal.fire('Saved!', 'Product Added', 'success');
+            document.getElementById('pName').value = "";
+            document.getElementById('pPrice').value = "";
+        });
     };
 </script>
 </body>
