@@ -82,49 +82,26 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-   window.onload = () => {
-    // 1. വിവരങ്ങൾ എടുക്കുന്നു
-    const name = localStorage.getItem('checkout_name');
-    const price = localStorage.getItem('checkout_price');
-    const img = localStorage.getItem('checkout_img');
-    const userMob = localStorage.getItem('userMob');
+    window.onload = () => {
+        const name = localStorage.getItem('checkout_name');
+        const price = localStorage.getItem('checkout_price');
+        const img = localStorage.getItem('checkout_img');
+        const userMob = localStorage.getItem('userMob');
 
-    // 2. ഇമേജും വിലയും ആദ്യം സെറ്റ് ചെയ്യുന്നു (ഇത് എറർ വരുന്നത് തടയും)
-    if (document.getElementById('pName')) document.getElementById('pName').innerText = name;
-    if (document.getElementById('pPrice')) document.getElementById('pPrice').innerText = "₹" + price;
-    
-    const pImgElement = document.getElementById('pImg');
-    if (pImgElement) {
-        pImgElement.src = img || 'https://via.placeholder.com/70';
-    }
-
-    // 3. മൊബൈൽ ഫീൽഡ് ലോജിക് - ഗൂഗിൾ യൂസർക്ക് വേണ്ടി മാത്രം
-    const mobField = document.getElementById('custMob');
-
-    if (mobField) {
-        // ലോഗിൻ ചെയ്ത ഡാറ്റ ഒരു 10 അക്ക നമ്പറാണോ എന്ന് നോക്കുന്നു
-        const isValidMobile = userMob && userMob.length >= 10 && !isNaN(userMob);
-
-        if (isValidMobile) {
-            // മൊബൈൽ നമ്പർ ഉള്ളവർക്ക് അത് ഓട്ടോ-ഫിൽ ചെയ്ത് ലോക്ക് ചെയ്യുന്നു
-            mobField.value = userMob;
-            mobField.readOnly = true;
-            mobField.style.backgroundColor = "#f0f0f0";
-        } else {
-            // ഗൂഗിൾ ലോഗിൻ ചെയ്തവർക്ക് (അല്ലെങ്കിൽ നമ്പർ ഇല്ലാത്തവർക്ക്) ടൈപ്പ് ചെയ്യാൻ തുറന്നു കൊടുക്കുന്നു
-            mobField.value = "";
-            mobField.readOnly = false;
-            mobField.placeholder = "Enter Mobile Number";
-            mobField.style.backgroundColor = "#ffffff";
-            mobField.focus(); // യൂസർക്ക് ടൈപ്പ് ചെയ്യാൻ എളുപ്പത്തിന് ഫോക്കസ് നൽകുന്നു
+        if(!name || !userMob) {
+            Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
+            return;
         }
-    }
-};
+
+        document.getElementById('pName').innerText = name;
+        document.getElementById('pPrice').innerText = "₹" + price;
+        document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
+        document.getElementById('custMob').value = userMob;
+    };
 
     window.handlePayment = () => {
         const name = document.getElementById('custName').value;
         const addr = document.getElementById('custAddr').value;
-        const mobField = document.getElementById('custMob');
         const mob = document.getElementById('custMob').value;
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
 
@@ -176,27 +153,17 @@
     }
 
     function saveOrder(name, addr, mob, amount) {
-    const ordersRef = ref(db, 'orders');
-    push(ordersRef, {
-        userName: name,
-        address: addr,
-        userMob: mob, // ഇവിടെ 'mob' എന്ന് തന്നെ കൊടുക്കണം
-        // ... മറ്റ് വിവരങ്ങൾ
-    }).then(() => {
-        Swal.fire("Success", "Order Placed!", "success");
-    });
-}
-const orderData = {
-    userName: localStorage.getItem('userName'), // ലോഗിൻ ചെയ്ത ആളുടെ പേര്
-    userMob: localStorage.getItem('userMob'),   // ലോഗിൻ ചെയ്ത ആളുടെ മൊബൈൽ/UID
-    address: document.getElementById('addressInput').value, // അഡ്രസ്സ് ഫീൽഡ്
-    // അഡ്രസ്സിനൊപ്പം മൊബൈൽ നമ്പർ കൂടി ചേർക്കാൻ താഴെ പറയുന്ന വരി ഉപയോഗിക്കാം
-    fullAddress: `${document.getElementById('addressInput').value} | Mob: ${localStorage.getItem('userMob')}`,
-    checkout_name: productName,
-    checkout_price: productPrice,
-    status: 'Pending',
-    orderDate: new Date().toLocaleString('en-IN')
-};
+        const orderData = {
+            checkout_name: document.getElementById('pName').innerText,
+            checkout_price: amount,
+            checkout_img: document.getElementById('pImg').src,
+            userName: name,
+            userMob: mob,
+            address: addr,
+            payment: "UPI (Pending Verification)",
+            status: "Pending",
+            orderDate: new Date().toLocaleString()
+        };
 
         const ordersRef = ref(db, 'orders');
         const newOrderRef = push(ordersRef);
