@@ -90,11 +90,13 @@
                 const orderId = childSnapshot.key;
 
                 // ഫിൽട്ടറിംഗ് ലോജിക്: UID, ഇമെയിൽ അല്ലെങ്കിൽ മൊബൈൽ നമ്പർ എന്നിവ ചെക്ക് ചെയ്യുന്നു
-                const isMyOrder = (
-                    (userMob && (order.mobile == usermob || order.usermob == usermob || order.user == usermob || order.customerMobile == usermob)) || 
-                    (useremail && (order.email == useremail || order.email == userEmail))
-                );
-
+                
+                  // ഈ ലോജിക് ഉപയോഗിച്ച് നോക്കുക
+const isMyOrder = (
+    (userMob && (order.userId === userMob || order.mobile == userMob || order.userMob == userMob)) || 
+    (userEmail && (order.email === userEmail || order.customerEmail === userEmail)) ||
+    (order.checkout_name && userName && order.checkout_name.includes(userName))
+);
                 if (isMyOrder) {
                     found = true;
                     const status = (order.status || 'Pending').trim();
