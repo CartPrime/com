@@ -83,31 +83,30 @@
     const db = getDatabase(app);
 
     window.onload = () => {
-        const name = localStorage.getItem('checkout_name');
-        const price = localStorage.getItem('checkout_price');
-        const img = localStorage.getItem('checkout_img');
-        const userMob = localStorage.getItem('userMob');
-    
-        if(!name || !userMob) {
-            Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
-            return;
-        }
+    const name = localStorage.getItem('checkout_name');
+    const price = localStorage.getItem('checkout_price');
+    const img = localStorage.getItem('checkout_img');
+    const userMob = localStorage.getItem('userMob');
 
-        document.getElementById('pName').innerText = name;
-        document.getElementById('pPrice').innerText = "₹" + price;
-        document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
-        const mobField = document.getElementById('custMob'); 
- 
-      if (userMob && userMob.length >= 10 && !isNaN(userMob)) {
+    // ഇമേജും പേരും ലോഡ് ചെയ്യുന്ന ഭാഗം
+    document.getElementById('pName').innerText = name;
+    document.getElementById('pPrice').innerText = "₹" + price;
+    document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
+
+    // മൊബൈൽ ഫീൽഡ് ലോജിക് (ഇവിടെയാണ് const mobField ചേർക്കേണ്ടത്)
+    const mobField = document.getElementById('custMob'); 
+
+    if (userMob && userMob.length >= 10 && !isNaN(userMob)) {
         mobField.value = userMob;
         mobField.readOnly = true;
         mobField.style.backgroundColor = "#f0f0f0";
-      } else {
-       mobField.value = "";
-      mobField.readOnly = false;
-      mobField.placeholder = "Enter Mobile Number";
-      mobField.style.backgroundColor = "#ffffff";
-     }
+    } else {
+        mobField.value = "";
+        mobField.readOnly = false;
+        mobField.placeholder = "Enter Mobile Number";
+        mobField.style.backgroundColor = "#ffffff";
+    }
+};
 
     window.handlePayment = () => {
         const name = document.getElementById('custName').value;
