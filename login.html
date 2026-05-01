@@ -2,242 +2,272 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CartPrime - Home</title>
+    <title>CartPrime - Secure Auth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary: #ffae00;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --success: #28a745;
+            --primary: #ff9900;
+            --dark-bg: #1a1a2e;
+            --light-bg: #f4f7f6;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--light); color: #333; line-height: 1.6; }
-
-        /* Navbar Responsive */
-        nav {
-            background-color: var(--dark);
-            padding: 0 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            height: 70px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
-        .nav-links { display: flex; align-items: center; gap: 15px; }
-        .nav-links a { color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s; }
         
-        #loginLink { border: 1.5px solid var(--primary); padding: 5px 15px; border-radius: 20px; }
-        #loginLink:hover { background: var(--primary); color: var(--dark); }
-
-        .user-profile-nav {
-            width: 35px; height: 35px; border-radius: 50%;
-            border: 2px solid var(--primary); overflow: hidden;
-            cursor: pointer; display: none;
+        body { 
+            background: linear-gradient(135deg, var(--dark-bg), #16213e); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 15px; 
         }
-        .user-profile-nav img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Responsive Hero Banner */
-        .hero-banner {
-            width: 90%; max-width: 1200px; margin: 20px auto;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-radius: 20px;
-            display: flex; flex-wrap: wrap;
-            align-items: center; justify-content: center;
-            padding: 40px; color: white;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        .auth-card { 
+            background: white; 
+            width: 100%; 
+            max-width: 420px; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
         }
-        .hero-content { flex: 1; min-width: 300px; text-align: left; }
-        .hero-content h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); color: var(--primary); margin-bottom: 15px; }
-        .hero-content p { font-size: 1.1rem; margin-bottom: 25px; opacity: 0.9; }
+
+        .tabs { 
+            display: flex; 
+            margin-bottom: 25px; 
+            background: #f1f1f1;
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+        .tab { 
+            flex: 1; 
+            padding: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+            font-weight: 700; 
+            color: #666; 
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .tab.active { 
+            color: var(--primary); 
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-box { display: none; animation: fadeIn 0.4s ease; }
+        .form-box.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #444; }
         
-        .hero-image { flex: 1; min-width: 250px; display: flex; justify-content: center; }
-        .hero-image img {
-            max-width: 100%; height: auto; max-height: 250px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
-            transition: transform 0.5s ease;
+        input { 
+            width: 100%; 
+            padding: 12px 15px; 
+            border: 1.5px solid #eee; 
+            border-radius: 10px; 
+            outline: none; 
+            font-size: 15px;
+            transition: 0.3s;
         }
-        .hero-banner:hover .hero-image img { transform: scale(1.08) rotate(-3deg); }
-
-        /* Responsive Product Grid */
-        .container { padding: 30px 5%; max-width: 1300px; margin: 0 auto; }
-        .container h2 { margin-bottom: 25px; font-weight: 700; border-left: 5px solid var(--primary); padding-left: 15px; }
         
-        .product-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 20px; 
+        input:focus { border-color: var(--primary); background: #fffcf5; }
+
+        .btn { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--primary); 
+            border: none; 
+            font-weight: bold; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            font-size: 16px; 
+            color: white; 
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+            transition: 0.3s;
         }
 
-        .product-card { 
-            background: white; border-radius: 15px; padding: 15px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-            text-align: center; transition: 0.3s; display: flex; flex-direction: column;
-        }
-        .product-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .product-card img { width: 100%; height: 160px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; }
-        .product-card h3 { font-size: 16px; color: #333; margin-bottom: 10px; height: 40px; overflow: hidden; }
-        .product-card p { color: var(--success); font-weight: 800; font-size: 1.2rem; margin-bottom: 15px; }
+        .btn:active { transform: scale(0.98); }
         
-        .buy-btn { 
-            background: var(--primary); color: var(--dark); border: none; 
-            padding: 12px; border-radius: 8px; cursor: pointer; 
-            font-weight: 700; width: 100%; margin-top: auto; transition: 0.2s;
+        .google-btn {
+            width: 100%; padding: 12px; background: white; border: 1.5px solid #eee; 
+            border-radius: 10px; cursor: pointer; margin-top: 15px; font-size: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-weight: 600; color: #555; transition: 0.3s;
         }
-        .buy-btn:active { transform: scale(0.96); }
-        .out-of-stock-btn { background: #e0e0e0; color: #888; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-top: auto; cursor: not-allowed; }
+        .google-btn:hover { background: #fafafa; border-color: #ddd; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 600px) {
-            nav { padding: 0 3%; }
-            .logo { font-size: 1.2rem; }
-            .nav-links { gap: 10px; }
-            .nav-links a { font-size: 12px; }
-            
-            .hero-banner { padding: 30px 20px; text-align: center; }
-            .hero-content { text-align: center; min-width: 100%; }
-            .hero-image { margin-top: 20px; min-width: 100%; }
-            .hero-image img { max-height: 180px; }
-            
-            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .product-card { padding: 10px; }
-            .product-card h3 { font-size: 14px; }
+        .divider { text-align: center; margin: 20px 0; color: #aaa; font-size: 13px; position: relative; }
+        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: #eee; }
+        .divider::before { left: 0; } .divider::after { right: 0; }
+
+        /* Small screen adjustments */
+        @media (max-width: 400px) {
+            .auth-card { padding: 20px; }
+            .btn { font-size: 15px; }
         }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">CartPrime</div>
-        <div class="nav-links">
-            <a href="products.html">Shop</a>
-            <a href="admin.html" id="adminBtn" style="display:none;">Admin</a>
-            <a href="login.html" id="loginLink">Login</a>
-            <div class="user-profile-nav" id="userProfileIcon" onclick="window.location.href='profile.html'">
-                <img id="navProfilePic" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-            </div>
-        </div>
-    </nav>
-
-    <div class="hero-banner">
-        <div class="hero-content">
-            <h1>Special Discount!</h1>
-            <p>Get up to <b>50% OFF</b> on your first order.</p>
-            <button class="buy-btn" style="width: auto; padding: 12px 30px;" onclick="location.href='products.html'">Shop Now</button>
-        </div>
-        <div class="hero-image">
-            <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-shopping-discount-illustration-download-in-svg-png-gif-file-formats--sale-offers-and-pack-e-commerce-illustrations-4541315.png" alt="Sale">
-        </div>
-    </div>
-    
-    <div class="container">
-        <h2>Featured Products</h2>
-        <div class="product-grid" id="productGrid">
-            <p style="grid-column: 1/-1; text-align: center; padding: 50px;">Loading awesome products...</p>
-        </div>
+<div class="auth-card">
+    <div class="tabs">
+        <div class="tab active" id="tab-login" onclick="switchTab('login')">Login</div>
+        <div class="tab" id="tab-register" onclick="switchTab('register')">Register</div>
     </div>
 
-    <script type="module">
-        // --- Firebase setup stays exactly the same ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <div id="loginBox" class="form-box active">
+        <div class="input-group">
+            <label>Mobile / Email</label>
+            <input type="text" id="lUser" placeholder="Enter Mobile or Email">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="lPass" placeholder="••••••••">
+        </div>
+        <button class="btn" onclick="login()">Sign In</button>
+        
+        <div class="divider">OR CONTINUE WITH</div>
+        
+        <button class="google-btn" onclick="googleLogin()">
+            <img src="https://img.icons8.com/color/20/000000/google-logo.png"/> Google
+        </button>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
-            authDomain: "yoush0pcart.firebaseapp.com",
-            projectId: "yoush0pcart",
-            storageBucket: "yoush0pcart.firebasestorage.app",
-            messagingSenderId: "519708489514",
-            appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
-        };
+    <div id="registerBox" class="form-box">
+        <div class="input-group"><label>Shop/User Name</label><input type="text" id="rName" placeholder="Full Name"></div>
+        <div class="input-group"><label>Mobile Number</label><input type="tel" id="rMob" placeholder="10 Digit Number"></div>
+        <div class="input-group"><label>House No./Building</label><input type="text" id="rHouse"></div>
+        <div style="display:flex; gap:10px;">
+            <div class="input-group" style="flex:1;"><label>Pincode</label><input type="number" id="rPin"></div>
+            <div class="input-group" style="flex:1;"><label>State</label><input type="text" id="rState" value="Kerala"></div>
+        </div>
+        <div class="input-group"><label>Set Password</label><input type="password" id="rPass" placeholder="Min. 6 characters"></div>
+        <button class="btn" onclick="register()">Create Account</button>
+    </div>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // UI Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const role = localStorage.getItem('userRole');
-            const userMob = localStorage.getItem('userMob');
-            const loginLink = document.getElementById('loginLink');
-            const profileIcon = document.getElementById('userProfileIcon');
-            const adminBtn = document.getElementById('adminBtn');
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
+        authDomain: "yoush0pcart.firebaseapp.com",
+        projectId: "yoush0pcart",
+        storageBucket: "yoush0pcart.firebasestorage.app",
+        messagingSenderId: "519708489514",
+        appId: "1:519708489514:web:f0f97e6ea60c2915cb9053"
+    };
 
-            if (role) {
-                loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i>';
-                loginLink.style.borderColor = "#ff4d4d";
-                loginLink.style.color = "#ff4d4d";
-                
-                loginLink.onclick = (e) => {
-                    e.preventDefault();
-                    localStorage.clear();
-                    location.reload();
-                };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-                profileIcon.style.display = 'block';
-                if(role === 'admin') adminBtn.style.display = 'inline-block';
-
-                onValue(ref(db, 'users/' + userMob), (snapshot) => {
-                    const userData = snapshot.val();
-                    if (userData && userData.profilePic) {
-                        document.getElementById('navProfilePic').src = userData.profilePic;
-                    }
-                });
-            }
+    // SweetAlert Helper
+    const showAlert = (title, text, icon) => {
+        return Swal.fire({
+            title: title, text: text, icon: icon,
+            confirmButtonColor: '#ff9900',
+            timer: icon === 'success' ? 1500 : null,
+            showConfirmButton: icon !== 'success',
         });
+    };
 
-        const productGrid = document.getElementById('productGrid');
-        onValue(ref(db, 'products'), (snapshot) => {
-            productGrid.innerHTML = '';
-            const data = snapshot.val();
-            if (data) {
-                Object.values(data).forEach(item => {
-                    const firstImg = (item.img || item.image || "").split(',')[0].trim();
-                    const safeName = item.name.replace(/'/g, "\\'");
-                    const isAvailable = item.inStock !== false;
+    // Google Login
+    window.googleLogin = async () => {
+        try {
+            // Mobile-il popup block aakan sadhyatha ullathukondu error handle cheyyanam
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
 
-                    const actionButton = isAvailable 
-                        ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
-                        : `<button class="out-of-stock-btn" disabled>Sold Out</button>`;
+            await update(ref(db, 'users/' + user.uid), {
+                name: user.displayName,
+                email: user.email,
+                profilePic: user.photoURL,
+                lastLogin: new Date().toLocaleString('en-IN'),
+                role: 'user'
+            });
 
-                    productGrid.innerHTML += `
-                        <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.8'}">
-                            <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.img}', '${item.desc}')" alt="${item.name}">
-                            <h3>${item.name}</h3>
-                            <p>₹${item.price}</p>
-                            ${actionButton}
-                        </div>
-                    `;
-                });
+            localStorage.setItem('userRole', 'user');
+            localStorage.setItem('userMob', user.uid);
+
+            showAlert("Welcome!", user.displayName, "success").then(() => {
+                window.location.href = 'index.html';
+            });
+        } catch (error) {
+            console.error(error);
+            showAlert("Login Error", "Please try again or use another method.", "error");
+        }
+    };
+
+    // Traditional Login
+    window.login = async () => {
+        const userVal = document.getElementById('lUser').value.trim();
+        const passVal = document.getElementById('lPass').value.trim();
+
+        if(!userVal || !passVal) return showAlert("Wait", "Fill all fields", "warning");
+
+        if(userVal.includes('@')) {
+            try {
+                await signInWithEmailAndPassword(auth, userVal, passVal);
+                localStorage.setItem('userRole', 'admin');
+                window.location.href = 'index.html';
+            } catch (e) { showAlert("Error", "Admin credentials invalid", "error"); }
+            return;
+        }
+
+        get(child(ref(db), `users/${userVal}`)).then((snapshot) => {
+            if (snapshot.exists() && snapshot.val().pass === passVal) {
+                localStorage.setItem('userRole', 'user');
+                localStorage.setItem('userMob', userVal); 
+                window.location.href = 'index.html';
             } else {
-                productGrid.innerHTML = '<p>No products found.</p>';
+                showAlert("Error", "Invalid Login Details", "error");
             }
         });
+    };
 
-        // Global functions for buttons
-        window.viewProduct = (name, price, img, desc) => {
-            localStorage.setItem('viewProdName', name);
-            localStorage.setItem('viewProdPrice', price);
-            localStorage.setItem('viewProdImg', img);
-            localStorage.setItem('viewProdDesc', desc);
-            window.location.href = 'product-details.html';
-        };
+    // Register Function
+    window.register = async () => {
+        const name = document.getElementById('rName').value.trim();
+        const mob = document.getElementById('rMob').value.trim();
+        const pass = document.getElementById('rPass').value.trim();
 
-        window.goToCheckout = (name, price, img) => {
-            if(!localStorage.getItem('userRole')) {
-                window.location.href = 'login.html';
-                return;
-            }
-            localStorage.setItem('tempProdName', name);
-            localStorage.setItem('tempProdPrice', price);
-            localStorage.setItem('tempProdImg', img);
-            window.location.href = 'checkout.html';
-        };
-    </script>
+        if (!name || mob.length < 10 || pass.length < 6) {
+            return showAlert("Invalid", "Please enter valid details (Pass min 6 chars)", "warning");
+        }
+
+        const snapshot = await get(child(ref(db), `users/${mob}`));
+        if (snapshot.exists()) return showAlert("Wait", "Mobile already registered!", "warning");
+
+        await set(ref(db, 'users/' + mob), { 
+            name, mob, pass, 
+            address: document.getElementById('rHouse').value,
+            lastLogin: "New User" 
+        });
+
+        showAlert("Success", "Account Created!", "success").then(() => window.location.reload());
+    };
+
+    // Tab Switcher
+    window.switchTab = (t) => {
+        document.getElementById('loginBox').classList.toggle('active', t === 'login');
+        document.getElementById('registerBox').classList.toggle('active', t === 'register');
+        document.getElementById('tab-login').classList.toggle('active', t === 'login');
+        document.getElementById('tab-register').classList.toggle('active', t === 'register');
+    };
+</script>
 </body>
 </html>
