@@ -91,8 +91,8 @@
 
                 // ഫിൽട്ടറിംഗ് ലോജിക്: UID, ഇമെയിൽ അല്ലെങ്കിൽ മൊബൈൽ നമ്പർ എന്നിവ ചെക്ക് ചെയ്യുന്നു
                 const isMyOrder = (
-                    (userMob && (order.mobile == userMob || order.userMob == userMob || order.user == userMob || order.customerMobile == userMob)) || 
-                    (useremail && (order.email == userEmail || order.email == userEmail))
+                    (userMob && (order.mobile == usermob || order.usermob == usermob || order.user == usermob || order.customerMobile == usermob)) || 
+                    (useremail && (order.email == useremail || order.email == userEmail))
                 );
 
                 if (isMyOrder) {
