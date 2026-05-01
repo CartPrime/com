@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CartPrime - Secure Auth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -110,7 +111,27 @@
         .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: #eee; }
         .divider::before { left: 0; } .divider::after { right: 0; }
 
-        /* Small screen adjustments */
+        /* Modern SweetAlert Custom Styles */
+        .custom-swal-popup {
+            border-radius: 24px !important;
+            padding: 20px !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .custom-swal-title {
+            color: #1a1a2e !important;
+            font-weight: 800 !important;
+        }
+
+        .custom-swal-confirm {
+            border-radius: 12px !important;
+            padding: 12px 30px !important;
+            font-weight: 600 !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         @media (max-width: 400px) {
             .auth-card { padding: 20px; }
             .btn { font-size: 15px; }
@@ -175,20 +196,31 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // SweetAlert Helper
+    // Enhanced Modern SweetAlert Helper
     const showAlert = (title, text, icon) => {
         return Swal.fire({
-            title: title, text: text, icon: icon,
-            confirmButtonColor: '#ff9900',
-            timer: icon === 'success' ? 1500 : null,
+            title: title,
+            text: text,
+            icon: icon,
+            iconColor: icon === 'success' ? '#2ecc71' : '#ff9900',
             showConfirmButton: icon !== 'success',
+            confirmButtonText: 'Continue',
+            confirmButtonColor: '#ff9900',
+            timer: icon === 'success' ? 1800 : null,
+            timerProgressBar: icon === 'success',
+            showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+            hideClass: { popup: 'animate__animated animate__zoomOut animate__faster' },
+            customClass: {
+                popup: 'custom-swal-popup',
+                title: 'custom-swal-title',
+                confirmButton: 'custom-swal-confirm'
+            }
         });
     };
 
     // Google Login
     window.googleLogin = async () => {
         try {
-            // Mobile-il popup block aakan sadhyatha ullathukondu error handle cheyyanam
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
@@ -203,12 +235,11 @@
             localStorage.setItem('userRole', 'user');
             localStorage.setItem('userMob', user.uid);
 
-            showAlert("Welcome!", user.displayName, "success").then(() => {
+            showAlert("Welcome!", `Logged in as ${user.displayName}`, "success").then(() => {
                 window.location.href = 'index.html';
             });
         } catch (error) {
-            console.error(error);
-            showAlert("Login Error", "Please try again or use another method.", "error");
+            showAlert("Login Error", "Google login failed. Please try again.", "error");
         }
     };
 
@@ -217,14 +248,14 @@
         const userVal = document.getElementById('lUser').value.trim();
         const passVal = document.getElementById('lPass').value.trim();
 
-        if(!userVal || !passVal) return showAlert("Wait", "Fill all fields", "warning");
+        if(!userVal || !passVal) return showAlert("Empty Fields", "Please fill all fields", "warning");
 
         if(userVal.includes('@')) {
             try {
                 await signInWithEmailAndPassword(auth, userVal, passVal);
                 localStorage.setItem('userRole', 'admin');
                 window.location.href = 'index.html';
-            } catch (e) { showAlert("Error", "Admin credentials invalid", "error"); }
+            } catch (e) { showAlert("Access Denied", "Invalid Admin credentials", "error"); }
             return;
         }
 
@@ -234,7 +265,7 @@
                 localStorage.setItem('userMob', userVal); 
                 window.location.href = 'index.html';
             } else {
-                showAlert("Error", "Invalid Login Details", "error");
+                showAlert("Login Failed", "Incorrect mobile or password", "error");
             }
         });
     };
@@ -246,11 +277,11 @@
         const pass = document.getElementById('rPass').value.trim();
 
         if (!name || mob.length < 10 || pass.length < 6) {
-            return showAlert("Invalid", "Please enter valid details (Pass min 6 chars)", "warning");
+            return showAlert("Invalid Data", "Check your details (Password: min 6 chars)", "warning");
         }
 
         const snapshot = await get(child(ref(db), `users/${mob}`));
-        if (snapshot.exists()) return showAlert("Wait", "Mobile already registered!", "warning");
+        if (snapshot.exists()) return showAlert("Wait!", "This number is already registered", "warning");
 
         await set(ref(db, 'users/' + mob), { 
             name, mob, pass, 
@@ -258,7 +289,7 @@
             lastLogin: "New User" 
         });
 
-        showAlert("Success", "Account Created!", "success").then(() => window.location.reload());
+        showAlert("Success", "Your account is ready!", "success").then(() => window.location.reload());
     };
 
     // Tab Switcher
