@@ -89,10 +89,9 @@
                 const order = childSnapshot.val();
                 const orderId = childSnapshot.key;
 
-               const isMyOrder = (
-    (userMob && (order.userId === userMob || order.mobile == userMob || order.userMob == userMob)) || 
+              const isMyOrder = (
     (userEmail && (order.email === userEmail || order.customerEmail === userEmail || order.userEmail === userEmail)) ||
-    (order.checkout_name && userName && order.checkout_name.includes(userName))
+    (userMob && (order.userId === userMob || order.mobile == userMob || order.userMob == userMob))
 );
              
                 if (isMyOrder) {
