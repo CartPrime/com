@@ -218,31 +218,34 @@
         });
     };
 
-    // Google Login
-    window.googleLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
+   window.googleLogin = async () => {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
 
-            await update(ref(db, 'users/' + user.uid), {
-                name: user.displayName,
-                email: user.email,
-                profilePic: user.photoURL,
-                lastLogin: new Date().toLocaleString('en-IN'),
-                role: 'user'
-            });
+        await update(ref(db, 'users/' + user.uid), {
+            name: user.displayName,
+            email: user.email,
+            profilePic: user.photoURL,
+            lastLogin: new Date().toLocaleString('en-IN'),
+            role: 'user'
+        });
 
-            localStorage.setItem('userRole', 'user');
-            localStorage.setItem('userMob', user.uid);
+        localStorage.setItem('userRole', 'user');
+        localStorage.setItem('userName', user.displayName);
+        
+        // പ്രധാനപ്പെട്ട മാറ്റം ഇവിടെയാണ്: 
+        // ഓർഡർ പേജിൽ ചെക്ക് ചെയ്യാൻ UID-യും ഇമെയിലും സേവ് ചെയ്യുന്നു.
+        localStorage.setItem('userMob', user.uid); 
+        localStorage.setItem('userEmail', user.email);
 
-            showAlert("Welcome!", `Logged in as ${user.displayName}`, "success").then(() => {
-                window.location.href = 'index.html';
-            });
-        } catch (error) {
-            showAlert("Login Error", "Google login failed. Please try again.", "error");
-        }
-    };
-
+        showAlert("Welcome!", `Logged in as ${user.displayName}`, "success").then(() => {
+            window.location.href = 'index.html';
+        });
+    } catch (error) {
+        showAlert("Login Error", "Google login failed.", "error");
+    }
+};
     // Traditional Login
     window.login = async () => {
         const userVal = document.getElementById('lUser').value.trim();
