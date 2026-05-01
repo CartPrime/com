@@ -176,7 +176,16 @@
     }
 
     function saveOrder(name, addr, mob, amount) {
-       // ഓർഡർ സേവ് ചെയ്യുന്ന ഫംഗ്ഷനുള്ളിൽ ഇത് ചേർക്കുക
+    const ordersRef = ref(db, 'orders');
+    push(ordersRef, {
+        userName: name,
+        address: addr,
+        userMob: mob, // ഇവിടെ 'mob' എന്ന് തന്നെ കൊടുക്കണം
+        // ... മറ്റ് വിവരങ്ങൾ
+    }).then(() => {
+        Swal.fire("Success", "Order Placed!", "success");
+    });
+}
 const orderData = {
     userName: localStorage.getItem('userName'), // ലോഗിൻ ചെയ്ത ആളുടെ പേര്
     userMob: localStorage.getItem('userMob'),   // ലോഗിൻ ചെയ്ത ആളുടെ മൊബൈൽ/UID
