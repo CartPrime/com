@@ -153,17 +153,18 @@
     }
 
     function saveOrder(name, addr, mob, amount) {
-        const orderData = {
-            checkout_name: document.getElementById('pName').innerText,
-            checkout_price: amount,
-            checkout_img: document.getElementById('pImg').src,
-            userName: name,
-            userMob: mob,
-            address: addr,
-            payment: "UPI (Pending Verification)",
-            status: "Pending",
-            orderDate: new Date().toLocaleString()
-        };
+       // ഓർഡർ സേവ് ചെയ്യുന്ന ഫംഗ്ഷനുള്ളിൽ ഇത് ചേർക്കുക
+const orderData = {
+    userName: localStorage.getItem('userName'), // ലോഗിൻ ചെയ്ത ആളുടെ പേര്
+    userMob: localStorage.getItem('userMob'),   // ലോഗിൻ ചെയ്ത ആളുടെ മൊബൈൽ/UID
+    address: document.getElementById('addressInput').value, // അഡ്രസ്സ് ഫീൽഡ്
+    // അഡ്രസ്സിനൊപ്പം മൊബൈൽ നമ്പർ കൂടി ചേർക്കാൻ താഴെ പറയുന്ന വരി ഉപയോഗിക്കാം
+    fullAddress: `${document.getElementById('addressInput').value} | Mob: ${localStorage.getItem('userMob')}`,
+    checkout_name: productName,
+    checkout_price: productPrice,
+    status: 'Pending',
+    orderDate: new Date().toLocaleString('en-IN')
+};
 
         const ordersRef = ref(db, 'orders');
         const newOrderRef = push(ordersRef);
