@@ -3,50 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Products - Cart Prime</title>
+    <title>All Products - CartPrime</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f4f7f6; }
+        :root { --primary: #ff9900; --dark: #1a1a2e; --light: #f4f7f6; --danger: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', 'Segoe UI', sans-serif; }
+        body { background-color: var(--light); color: #333; }
 
+        /* Header Styling */
         header {
-            background-color: #1a1a2e; padding: 15px 5%;
+            background-color: var(--dark); padding: 12px 6%;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); position: sticky; top: 0; z-index: 1000;
         }
-        .logo { font-size: 26px; font-weight: 800; color:  #ff9900; text-decoration: none; }
-        .nav-links a { color: white; text-decoration: none; margin-left: 20px; }
+        .logo { font-size: 24px; font-weight: 800; color: white; text-decoration: none; letter-spacing: 1px; }
+        .logo span { color: var(--primary); }
+        .nav-links a { text-decoration: none; }
+        .home-btn { 
+            background: var(--primary); color: var(--dark); border: none;
+            padding: 8px 22px; border-radius: 25px; font-weight: 700;
+            cursor: pointer; transition: 0.3s; font-size: 14px;
+        }
+        .home-btn:hover { background: white; transform: scale(1.05); }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+        /* Main Content */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .section-title { margin-bottom: 30px; font-size: 28px; font-weight: 700; border-left: 5px solid var(--primary); padding-left: 15px; }
+
+        /* Product Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
         
-        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; position: relative; transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .card img { width: 100%; height: 180px; object-fit: cover; border-radius: 5px; }
-        .card h3 { margin: 10px 0; font-size: 17px; color: #333; }
-        .price { color: #B12704; font-size: 19px; font-weight: bold; margin-bottom: 10px; }
+        .card { 
+            background: white; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: left; 
+            position: relative; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 1px solid #eee;
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         
-        /* Out of Stock Style */
-        .out-of-stock-badge { position: absolute; top: 10px; left: 10px; background: #dc3545; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; z-index: 10; }
-        .card.oos { opacity: 0.7; }
-        .card.oos img { filter: grayscale(100%); }
-        .btnh:hover{background-color: transparent; transition: 0.5s;}
-        .btn { background: #ffd814; border: 1px solid #fcd200; width: 100%; padding: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        .btn:disabled { background: #95a5a6; border-color: #7f8c8d; cursor: not-allowed; color: white; }
+        /* Image Container */
+        .img-container { width: 100%; height: 200px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; padding: 10px; overflow: hidden; }
+        .card img { max-width: 100%; max-height: 100%; object-fit: contain; transition: 0.5s; }
+        .card:hover img { transform: scale(1.1); }
+
+        /* Info Container */
+        .info { padding: 20px; }
+        .card h3 { font-size: 16px; color: #444; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 10px; }
+        .price { color: var(--dark); font-size: 20px; font-weight: 800; margin-bottom: 15px; display: block; }
+        
+        /* Badge & Buttons */
+        .oos-badge { position: absolute; top: 15px; right: 15px; background: var(--danger); color: white; padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; z-index: 10; }
+        .btn { 
+            background: var(--dark); color: white; border: none; 
+            width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; 
+            font-weight: 600; transition: 0.3s; font-size: 14px;
+        }
+        .btn:hover:not(:disabled) { background: var(--primary); color: var(--dark); }
+        .btn:disabled { background: #cbd5e0; cursor: not-allowed; color: #718096; }
+
+        .card.oos { opacity: 0.8; }
+        .card.oos img { filter: grayscale(80%); }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+            .section-title { font-size: 22px; }
+            .img-container { height: 160px; }
+            .info { padding: 12px; }
+            .price { font-size: 17px; }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html" class="logo">CartPrime</a>
+        <a href="index.html" class="logo">Cart<span>Prime</span></a>
         <nav class="nav-links">
-            <a href="index.html"><button class="btnh" style="color:#000000; font-weight:bold; background-color: #ff9900; border-radius: 5px; width: 90px; height: 35px; font-family: system-ui; border: none;" >Home</button></a>
-            
+            <a href="index.html"><button class="home-btn"><i class="fa fa-home"></i> Home</button></a>
         </nav>
     </header>
 
     <div class="container">
-        <h2 style="margin-bottom: 25px;">Our Collection</h2>
-        <div class="grid" id="allProductGrid"></div>
+        <h2 class="section-title">Explore All Products</h2>
+        <div class="grid" id="allProductGrid">
+            <!-- Loading skeleton or text -->
+            <p style="grid-column: 1/-1; text-align: center; padding: 50px; color: #888;">Loading our collection...</p>
+        </div>
     </div>
 
     <script type="module">
@@ -68,35 +109,59 @@
 
         onValue(productsRef, (snapshot) => {
             const grid = document.getElementById('allProductGrid');
-            grid.innerHTML = '';
             const data = snapshot.val();
-
+            grid.innerHTML = '';
+            
             if (data) {
+                let hasProducts = false;
                 Object.keys(data).forEach(key => {
                     const item = data[key];
                     
-                    //  Stock Status 
-                    const isOutOfStock = item.inStock === false;
+                    // --- logic: Admin-il showOnAll select cheythath maathram kaanikuka ---
+                    if (item.showOnAll === true) {
+                        hasProducts = true;
+                        const isOutOfStock = item.inStock === false;
 
-                    // FIRST IMAGE TAKE (item.img  item.image)
-                    const imageSource = item.img ? item.img.split(',')[0] : (item.image || 'placeholder.jpg');
+                        // Image Source Fix (Handles array and string)
+                        let imageSource = 'https://via.placeholder.com/200';
+                        if (Array.isArray(item.images) && item.images.length > 0) {
+                            imageSource = item.images[0];
+                        } else if (item.img) {
+                            imageSource = item.img.split(',')[0].trim();
+                        } else if (item.image) {
+                            imageSource = item.image;
+                        }
 
-                    grid.innerHTML += `
-                        <div class="card ${isOutOfStock ? 'oos' : ''}">
-                            ${isOutOfStock ? '<div class="out-of-stock-badge">Out of Stock</div>' : ''}
-                            <img src="${imageSource}" alt="${item.name}">
-                            <h3>${item.name}</h3>
-                            <p class="price">₹${item.price}</p>
-                            <button class="btn" 
-                                ${isOutOfStock ? 'disabled' : `onclick="location.href='product-details.html?id=${key}'"`}>
-                                ${isOutOfStock ? 'Currently Unavailable' : 'View Product'}
-                            </button>
-                        </div>`;
+                        grid.innerHTML += `
+                            <div class="card ${isOutOfStock ? 'oos' : ''}">
+                                ${isOutOfStock ? '<div class="oos-badge">Out of Stock</div>' : ''}
+                                <div class="img-container">
+                                    <img src="${imageSource}" alt="${item.name}" loading="lazy">
+                                </div>
+                                <div class="info">
+                                    <h3>${item.name}</h3>
+                                    <span class="price">₹${item.price}</span>
+                                    <button class="btn" 
+                                        ${isOutOfStock ? 'disabled' : `onclick="goToDetails('${key}')"`}>
+                                        ${isOutOfStock ? 'Unavailable' : 'View Product'}
+                                    </button>
+                                </div>
+                            </div>`;
+                    }
                 });
+
+                if(!hasProducts) {
+                    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px;"><i class="fa fa-box-open" style="font-size:40px; color:#ccc;"></i><p style="margin-top:10px;">No products enabled for this list.</p></div>';
+                }
+
             } else {
-                grid.innerHTML = '<h3>No products available.</h3>';
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px;"><p>No products found in database.</p></div>';
             }
         });
+
+        window.goToDetails = (id) => {
+            window.location.href = `product-details.html?id=${id}`;
+        };
     </script>
 </body>
 </html>
