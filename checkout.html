@@ -102,7 +102,19 @@
     window.handlePayment = () => {
         const name = document.getElementById('custName').value;
         const addr = document.getElementById('custAddr').value;
-        const mob = document.getElementById('custMob').value;
+        const mobField = document.getElementById('custMob');
+if (userMob && userMob.length >= 10 && !isNaN(userMob)) {
+    // മൊബൈൽ നമ്പർ ഉണ്ടെങ്കിൽ അത് ഫീൽഡിൽ കാണിക്കുക, മാറ്റാൻ അനുവദിക്കരുത്
+    mobField.value = userMob;
+    mobField.readOnly = true;
+    mobField.style.backgroundColor = "#f0f0f0"; // ലോക്ക് ആണെന്ന് മനസ്സിലാക്കാൻ ഒരു നിറം
+} else {
+    // ഗൂഗിൾ ലോഗിൻ ആണെങ്കിൽ (അല്ലെങ്കിൽ നമ്പർ ഇല്ലെങ്കിൽ) ടൈപ്പ് ചെയ്യാൻ അനുവദിക്കുക
+    mobField.value = "";
+    mobField.readOnly = false;
+    mobField.placeholder = "Enter Mobile Number";
+    mobField.style.backgroundColor = "#ffffff";
+}
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
 
         if(!name || !addr) {
