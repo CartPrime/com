@@ -68,73 +68,139 @@
     const db = getDatabase(app);
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ലോഗിൻ വിവരങ്ങൾ എടുക്കുന്നു
         const userMob = localStorage.getItem('userMob');
-        const userEmail = localStorage.getItem('userEmail'); 
-        const userName = localStorage.getItem('userName');   
+        const userEmail = localStorage.getItem('userEmail');
+        const userName = localStorage.getItem('userName');
 
-        // ലോഗിൻ ചെയ്തിട്ടില്ലെങ്കിൽ മാത്രം ലോഗിൻ പേജിലേക്ക് വിടുക
         if(!userMob && !userEmail) {
             window.location.href = 'login.html';
             return;
         }
 
-        // പേര് കാണിക്കുന്നു
-        document.getElementById('userDisplay').innerText = "Account: " + (userName || userEmail || userMob);
+        // Header-ൽ പേര് കാണിക്കുന്നു (Google പേര് ഉണ്ടെങ്കിൽ അത്, അല്ലെങ്കിൽ മൊബൈൽ/ഇമെയിൽ)
+        document.getElementById('userDisplay').innerText = userName ? "Welcome, " + userName : "Account: " + (userMob || userEmail);
 
         const container = document.getElementById('orderContainer');
-        
         onValue(ref(db, 'orders'), (snapshot) => {
             container.innerHTML = "";
             let found = false;
 
-            if (snapshot.exists()) {
-                snapshot.forEach((childSnapshot) => {
-                    const order = childSnapshot.val();
-                    const orderId = childSnapshot.key;
+            snapshot.forEach((childSnapshot) => {
+                const order = childSnapshot.val();
+                const orderId = childSnapshot.key;
 
-                    // എല്ലാ സാധ്യതകളും (Mobile/Email) പരിശോധിക്കുന്നു
-                    const matchMobile = userMob && (order.mobile == userMob || order.userMob == userMob || order.customerMobile == userMob);
-                    const matchEmail = userEmail && (order.email == userEmail || order.customerEmail == userEmail || order.userEmail == userEmail);
+                // ഫിൽട്ടറിംഗ് ലോജിക്: UID, ഇമെയിൽ അല്ലെങ്കിൽ മൊബൈൽ നമ്പർ എന്നിവ ചെക്ക് ചെയ്യുന്നു
+                const isMyOrder = (
+                    (userMob && (order.mobile == userMob || order.userMob == userMob || order.userId == userMob || order.customerMobile == userMob)) || 
+                    (userEmail && (order.email == userEmail || order.customerEmail == userEmail))
+                );
 
-                    if (matchMobile || matchEmail) {
-                        found = true;
-                        renderOrderCard(container, order, orderId);
+                if (isMyOrder) {
+                    found = true;
+                    const status = (order.status || 'Pending').trim();
+                    const pName = order.checkout_name || order.product || order.productName || "Product";
+                    const pPrice = order.checkout_price || order.price || "0";
+                    let pPayment = order.payment || 'COD';
+                    
+                    let actionBtnHTML = "";
+                    let statusClass = "status-other";
+                    let rejectReasonHTML = "";
+                    let tickMark = "";
+                    let paymentDisplay = `<p>Payment: ${pPayment}</p>`;
+
+                    const lowerStatus = status.toLowerCase();
+                    const isSuccessful = ["confirmed", "shipped", "delivered"].includes(lowerStatus);
+                    
+                    if (lowerStatus === "pending") {
+                        statusClass = "status-pending";
+                        actionBtnHTML = `<button class="action-btn cancel-btn" onclick="cancelOrder('${orderId}')">Cancel Order</button>`;
+                    } else if (lowerStatus === "confirmed") {
+                        statusClass = "status-confirmed";
+                        tickMark = `<i class="fas fa-check-circle"></i>`;
+                    } else if (lowerStatus === "delivered") {
+                        statusClass = "status-delivered";
+                        tickMark = `<i class="fas fa-check-circle"></i>`;
+                        actionBtnHTML = `<button class="action-btn return-btn" onclick="returnOrder('${orderId}')">Return Product</button>`;
+                    } else if (lowerStatus === "shipped") {
+                        statusClass = "status-shipped";
+                        tickMark = `<i class="fas fa-truck"></i>`;
+                    } else if (lowerStatus === "rejected") {
+                        statusClass = "status-rejected";
+                        tickMark = `<i class="fas fa-times-circle"></i>`;
+                        if(order.rejectReason) {
+                            rejectReasonHTML = `<div class="reject-reason"><strong>Order Rejected:</strong> ${order.rejectReason}</div>`;
+                        }
                     }
-                });
-            }
+
+                    if (isSuccessful && (pPayment.includes("UPI") || pPayment.toLowerCase().includes("online"))) {
+                        paymentDisplay = `<p class="payment-success"><i class="fas fa-shield-alt"></i> Your payment is successful</p>`;
+                    }
+
+                    container.innerHTML += `
+                        <div class="order-card" style="border-left-color: ${lowerStatus === 'rejected' ? '#dc3545' : (isSuccessful ? '#0f5132' : '#ff9900')}">
+                            <div class="order-header">
+                                <strong>${pName}</strong>
+                                <span class="status-badge ${statusClass}">${tickMark} ${status}</span>
+                            </div>
+                            <div class="order-details">
+                                <p>Price: ₹${pPrice}</p>
+                                ${paymentDisplay}
+                                ${rejectReasonHTML}
+                            </div>
+                            ${actionBtnHTML}
+                        </div>
+                    `;
+                }
+            });
 
             if (!found) {
-                container.innerHTML = "<div class='no-orders'>നിങ്ങളുടെ ഓർഡറുകൾ ഒന്നും കണ്ടെത്താനായില്ല.</div>";
+                container.innerHTML = "<div class='no-orders'>No orders found for this account.</div>";
             }
         });
     });
 
-    // ഓർഡർ കാർഡ് ഡിസ്പ്ലേ ചെയ്യാൻ ഒരു ഫങ്ക്ഷൻ
-    function renderOrderCard(container, order, orderId) {
-        const status = (order.status || 'Pending').trim();
-        const pName = order.checkout_name || order.productName || order.product || "Product";
-        const pPrice = order.checkout_price || order.price || "0";
-        const lowerStatus = status.toLowerCase();
-        
-        let statusClass = "status-other";
-        if(lowerStatus === "pending") statusClass = "status-pending";
-        else if(["confirmed", "delivered"].includes(lowerStatus)) statusClass = "status-confirmed";
-        else if(lowerStatus === "rejected") statusClass = "status-rejected";
+    window.cancelOrder = (id) => {
+        Swal.fire({
+            title: 'Cancel Order?',
+            text: "Are you sure you want to cancel this order?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Yes, Cancel it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const db = getDatabase();
+                remove(ref(db, 'orders/' + id)).then(() => {
+                    Swal.fire('Cancelled!', 'Your order has been removed.', 'success');
+                });
+            }
+        });
+    };
 
-        container.innerHTML += `
-            <div class="order-card">
-                <div class="order-header">
-                    <strong>${pName}</strong>
-                    <span class="status-badge ${statusClass}">${status}</span>
-                </div>
-                <div class="order-details">
-                    <p>Price: ₹${pPrice}</p>
-                    <p>Order ID: ${orderId}</p>
-                </div>
-            </div>
-        `;
-    }
+    window.returnOrder = (id) => {
+        Swal.fire({
+            title: 'Return Product',
+            text: 'Reason for return:',
+            input: 'select',
+            inputOptions: {
+                'damage': 'Damaged Product',
+                'quality': 'Low Quality',
+                'wrong': 'Wrong Item Received'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#1a1a2e'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const db = getDatabase();
+                update(ref(db, 'orders/' + id), {
+                    status: 'Return Requested',
+                    returnReason: result.value
+                }).then(() => {
+                    Swal.fire('Request Sent', 'We will contact you soon.', 'success');
+                });
+            }
+        });
+    };
 </script>
 </body>
 </html>
