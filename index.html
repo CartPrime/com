@@ -39,6 +39,14 @@
             padding: 6px 15px; border-radius: 5px; font-weight: bold; display: none; 
         }
 
+        /* Order Button Style */
+        #ordersBtn {
+            border: 1px solid #ffae00;
+            padding: 6px 12px;
+            border-radius: 5px;
+            display: none;
+        }
+
         /* Hero / Discount Banner Style */
         .hero-banner {
             width: 90%;
@@ -83,6 +91,8 @@
             .hero-image { text-align: center; margin-top: 20px; }
             .hero-image img { height: 150px; }
             .hero-content h1 { font-size: 24px; }
+            .nav-links { gap: 10px; }
+            .nav-links a { font-size: 13px; }
         }
     </style>
 </head>
@@ -92,7 +102,8 @@
         <a href="index.html" class="logo">Cart<span>Prime</span></a>
         <div class="nav-links">
             <a href="products.html">Products</a>
-            <a href="admin.html" id="adminBtn" style="display: none; background-color: white; border-radius: 5px; border: none;  padding: 6px 15px;">Admin</a>
+            <a href="orders.html" id="ordersBtn">My Orders</a>
+            <a href="admin.html" id="adminBtn">Admin</a>
             <a href="login.html" id="loginLink">Login</a>
 
             <div class="user-profile-nav" id="userProfileIcon" onclick="window.location.href='profile.html'">
@@ -141,6 +152,7 @@
             const loginLink = document.getElementById('loginLink');
             const profileIcon = document.getElementById('userProfileIcon');
             const adminBtn = document.getElementById('adminBtn');
+            const ordersBtn = document.getElementById('ordersBtn');
 
             if (role) {
                 loginLink.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
@@ -155,6 +167,8 @@
                 };
 
                 profileIcon.style.display = 'block';
+                ordersBtn.style.display = 'inline-block'; // Show My Orders when logged in
+                
                 if(role === 'admin') adminBtn.style.display = 'inline-block';
 
                 onValue(ref(db, 'users/' + userMob), (snapshot) => {
@@ -166,6 +180,7 @@
             } else {
                 loginLink.style.display = 'inline-block';
                 profileIcon.style.display = 'none';
+                ordersBtn.style.display = 'none'; // Hide My Orders when not logged in
             }
         });
 
@@ -176,11 +191,8 @@
             if (data) {
                 Object.values(data).forEach(item => {
                     
-                    // --- EE CONDITION MAATHRAM ADD CHEYYUKA ---
-                    // Admin panel-il 'Home Page' select cheythirunnal mathrame product show cheyyu
                     if (item.showOnHome === true) { 
                         
-                        // Image handle cheyyanulla logic (Links array aayittaanel item.images[0] edukum)
                         let firstImg = "";
                         if(Array.isArray(item.images)) {
                             firstImg = item.images[0];
@@ -189,6 +201,9 @@
                         }
 
                         const safeName = item.name.replace(/'/g, "\\'");
+                        const safeDesc = (item.desc || "").replace(/'/g, "\\'");
+                        const safeReturn = (item.returnPolicy || "7 Days").replace(/'/g, "\\'");
+                        
                         const isAvailable = item.inStock !== false;
 
                         const actionButton = isAvailable 
@@ -197,7 +212,7 @@
 
                         productGrid.innerHTML += `
                             <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
-                                <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.images ? item.images.join(',') : item.img}', '${item.desc}')">
+                                <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.images ? item.images.join(',') : item.img}', '${safeDesc}', '${safeReturn}')">
                                 <h3>${item.name}</h3>
                                 <p>₹${item.price}</p>
                                 ${actionButton}
@@ -206,7 +221,6 @@
                     }
                 });
                 
-                // Oru product polum home page-il select cheythittillenkil
                 if (productGrid.innerHTML === "") {
                     productGrid.innerHTML = '<p>No featured products available.</p>';
                 }
@@ -216,11 +230,12 @@
             }
         });
 
-        window.viewProduct = (name, price, img, desc) => {
+        window.viewProduct = (name, price, img, desc, returnPolicy) => {
             localStorage.setItem('viewProdName', name);
             localStorage.setItem('viewProdPrice', price);
-            localStorage.setItem('viewProdImg', img);
             localStorage.setItem('viewProdDesc', desc);
+            localStorage.setItem('viewProdImg', img);
+            localStorage.setItem('viewProdReturn', returnPolicy);
             window.location.href = 'product-details.html';
         };
 
@@ -229,9 +244,9 @@
                 window.location.href = 'login.html';
                 return;
             }
-            localStorage.setItem('tempProdName', name);
-            localStorage.setItem('tempProdPrice', price);
-            localStorage.setItem('tempProdImg', img);
+            localStorage.setItem('checkout_name', name);
+            localStorage.setItem('checkout_price', price);
+            localStorage.setItem('checkout_img', img);
             window.location.href = 'checkout.html';
         };
     </script>
