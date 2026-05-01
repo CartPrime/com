@@ -36,6 +36,10 @@
         .user-addr-box { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 8px; border-left: 4px solid #ff9900; line-height: 1.5; margin-top: 5px; }
         .reason-text { font-size: 11px; color: #e74c3c; font-style: italic; display: block; margin-top: 4px; }
         .action-btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; color: white; font-weight: 600; margin-right: 4px; }
+
+        /* Custom SweetAlert Rejection Styles */
+        .custom-swal-select { border-radius: 8px !important; padding: 10px !important; width: 400px; font-size: 14px !important; border: 1px solid #ddd !important; }
+        .custom-swal-popup { border-radius: 15px !important; padding: 20px !important;  }
     </style>
 </head>
 <body>
@@ -205,13 +209,35 @@
 
     window.updateStatus = (id, s) => update(ref(db, 'orders/'+id), {status: s, rejectReason: null});
 
+    // --- Updated Modern Reject Pop-up ---
     window.rejectWithReason = async (id) => {
         const { value: reason } = await Swal.fire({
-            title: 'Reason for Rejection',
+            title: 'Reject Order?',
+            text: "Select a reason for cancellation",
+            icon: 'warning',
+            width:'500px',
+            iconColor: '#e74c3c',
             input: 'select',
-            inputOptions: { 'Out of Stock': 'Out of Stock', 'Delivery Issue': 'Delivery Issue', 'Invalid Details': 'Invalid Details', 'Other': 'Other Reason' },
+            inputOptions: {
+                'Out of Stock': '📦 Out of Stock',
+                'Delivery Issue': '🚚 Delivery Issue',
+                'Invalid Details': '❌ Invalid Details',
+                'Payment Issue' : 'Payment is fake or no Proof Is Upload',
+                'Other': '📝 Other Reason'
+            },
+            inputPlaceholder: 'Choose Reason',
             showCancelButton: true,
-            inputPlaceholder: 'Why reject?'
+            
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Confirm Reject',
+            customClass: {
+                input: 'custom-swal-select',
+                popup: 'custom-swal-popup'
+            },
+            inputValidator: (value) => {
+                return !value && 'You must select a reason!'
+            }
         });
         if(reason) update(ref(db, 'orders/'+id), {status: 'Rejected', rejectReason: reason});
     };
@@ -222,10 +248,7 @@
         ul.innerHTML = "";
         s.forEach(c => {
             const u = c.val();
-            
-            // Profile-il user change cheyyunna number (u.phone) handle cheyyunnu
             const contactNum = u.phone || u.mob || c.key;
-
             let addrDisplay = "";
             if (u.fullAddress) {
                 addrDisplay = `
