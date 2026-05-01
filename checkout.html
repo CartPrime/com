@@ -82,31 +82,39 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    window.onload = () => {
+    // ലോഡിംഗ് സ്പീഡ് കൂട്ടാൻ നേരിട്ട് ലോക്കൽ സ്റ്റോറേജ് ഉപയോഗിക്കുന്നു
+    window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
         const img = localStorage.getItem('checkout_img');
         const userMob = localStorage.getItem('userMob');
+        const userName = localStorage.getItem('userName'); // ലോഗിൻ സമയത്ത് സേവ് ചെയ്ത പേര്
 
         if(!name || !userMob) {
             Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
             return;
         }
 
+        // വിവരങ്ങൾ വേഗത്തിൽ ഡിസ്‌പ്ലേ ചെയ്യുന്നു
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
-    };
+        
+        // യൂസറുടെ പേര് നേരത്തെ ഉണ്ടെങ്കിൽ അത് ഓട്ടോമാറ്റിക്കായി ഫിൽ ചെയ്യുന്നു
+        if(userName) {
+            document.getElementById('custName').value = userName;
+        }
+    });
 
     window.handlePayment = () => {
-        const name = document.getElementById('custName').value;
-        const addr = document.getElementById('custAddr').value;
+        const name = document.getElementById('custName').value.trim();
+        const addr = document.getElementById('custAddr').value.trim();
         const mob = document.getElementById('custMob').value;
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
 
         if(!name || !addr) {
-            return Swal.fire("Empty Fields", "Please fill name and address to continue.", "warning");
+            return Swal.fire("Empty Fields", "Name, Address എന്നിവ നൽകുക.", "warning");
         }
 
         const myUpiId = "9778722796@fam"; 
@@ -142,7 +150,7 @@
     function checkFinalConfirmation(name, addr, mob, amount) {
         Swal.fire({
             title: 'Payment Status',
-            text: "Did you complete the payment?",
+            text: "നിങ്ങൾ പെയ്മെന്റ് പൂർത്തിയാക്കിയോ?",
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Place Order',
@@ -153,6 +161,9 @@
     }
 
     function saveOrder(name, addr, mob, amount) {
+        // ഡാറ്റ അയക്കുമ്പോൾ ഒരു ലൂഡിംഗ് കാണിക്കുന്നത് നല്ലതാണ്
+        Swal.showLoading();
+
         const orderData = {
             checkout_name: document.getElementById('pName').innerText,
             checkout_price: amount,
@@ -171,11 +182,13 @@
         set(newOrderRef, orderData).then(() => {
             Swal.fire({
                 title: "Order Placed!",
-                text: "Your order is pending verification.",
+                text: "ഓർഡർ സക്സസ് ആയി. വെരിഫിക്കേഷന് ശേഷം ഷിപ്പ് ചെയ്യും.",
                 icon: "success"
             }).then(() => {
                 window.location.href = "orders.html";
             });
+        }).catch((err) => {
+            Swal.fire("Error", "Order സേവ് ചെയ്യാൻ പറ്റിയില്ല. ഒന്നുകൂടി നോക്കൂ.", "error");
         });
     }
 </script>
