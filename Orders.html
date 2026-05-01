@@ -3,59 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart Prime - Track My Orders</title>
+    <title>CartPrime - My Orders</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #f4f7f6; color: #333; padding: 20px; }
         .container { max-width: 600px; margin: auto; }
-        
         .header { text-align: center; margin-bottom: 30px; }
         .header h1 { color: #1a1a2e; }
-        .header p { color: #666; font-size: 14px; }
-
-        .search-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; gap: 10px; margin-bottom: 25px; }
-        .search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; }
-        .search-box button { background: #ff9900; color: #1a1a2e; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; margin-left: -6px; font-weight: bold; }
-
         .order-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid #ff9900; }
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
         
+        /* Status Colors */
         .status-pending { background: #fff3cd; color: #856404; }
-        .status-confirmed { background: #d4edda; color: #155724; }
-        .status-shipped { background: #1a1a2e; color: #ff9900; } /* Styling for Shipped status */
-        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-confirmed { background: #d1e7dd; color: #0f5132; }
+        .status-delivered { background: #d1e7dd; color: #0f5132; }
+        .status-shipped { background: #e0f2ff; color: #007bff; }
+        .status-rejected { background: #f8d7da; color: #842029; }
+        .status-other { background: #eee; color: #555; }
 
         .order-details p { font-size: 14px; margin-bottom: 5px; color: #555; }
+        .payment-success { color: #198754; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .reject-reason { background: #fff5f5; color: #dc3545; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 10px; border: 1px dashed #dc3545; }
+        .action-btn { border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 10px; width: 100%; transition: 0.3s; }
         
-        /* Tracking Section Style */
-        .tracking-box { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 15px; border: 1px dashed #ff9900; }
-        .track-link { color: #1a73e8; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-
-        .cancel-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 10px; width: 100%; transition: 0.3s; }
-        .cancel-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .cancel-btn { background: #dc3545; color: white; }
+        .return-btn { background: #1a1a2e; color: #ff9900; border: 1px solid #ff9900; }
         
         .no-orders { text-align: center; padding: 40px; color: #999; }
-        .nav-home { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #1a1a2e; font-weight: bold; font-size: 14px; }
+        .nav-home { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #1a1a2e; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>📦 Track My Orders</h1>
-        <p>ENTER MOBILE NUMBER</p>
-    </div>
-
-    <div class="search-box">
-        <input type="number" id="mobileSearch" placeholder="Enter Mobile Number">
-        <button onclick="fetchOrders()">Check</button>
+        <h1>📦 My Orders</h1>
+        <p id="userDisplay">Loading...</p>
     </div>
 
     <div id="orderContainer">
-        <div class="no-orders">Enter Your Mobile Number</div>
+        <div class="no-orders">Searching for your orders...</div>
     </div>
 
     <a href="index.html" class="nav-home">← Back to Home</a>
@@ -63,7 +53,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -77,81 +67,134 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    window.fetchOrders = () => {
-        const mobile = document.getElementById('mobileSearch').value;
-        if(!mobile) return Swal.fire("Error", "Please enter mobile number", "error");
+    document.addEventListener('DOMContentLoaded', () => {
+        const userMob = localStorage.getItem('userMob');
+        if(!userMob) {
+            window.location.href = 'login.html';
+            return;
+        }
+        document.getElementById('userDisplay').innerText = "Account: " + userMob;
 
         const container = document.getElementById('orderContainer');
-        container.innerHTML = "<p style='text-align:center;'>Searching...</p>";
-
-        onValue(ref(db, 'orders'), snap => {
+        onValue(ref(db, 'orders'), (snapshot) => {
             container.innerHTML = "";
             let found = false;
 
-            snap.forEach(child => {
-                const o = child.val();
-                const id = child.key;
+            snapshot.forEach((childSnapshot) => {
+                const order = childSnapshot.val();
+                const orderId = childSnapshot.key;
 
-                if(o.mobile == mobile) {
+                if (order.mobile == userMob || order.userMob == userMob || order.customerMobile == userMob) {
                     found = true;
-                    const currentStatus = o.status || 'Pending';
-                    const statusClass = currentStatus === 'Confirmed' ? 'status-confirmed' : 
-                                      (currentStatus === 'Rejected' ? 'status-rejected' : 
-                                      (currentStatus === 'Shipped' ? 'status-shipped' : 'status-pending'));
+                    const status = (order.status || 'Pending').trim();
+                    const pName = order.checkout_name || order.product || order.productName || "Product Name Not Found";
+                    const pPrice = order.checkout_price || order.price || order.productPrice || "0";
+                    let pPayment = order.payment || 'COD';
                     
-                    const canCancel = (currentStatus !== 'Confirmed' && currentStatus !== 'Rejected' && currentStatus !== 'Shipped');
+                    let actionBtnHTML = "";
+                    let statusClass = "status-other";
+                    let rejectReasonHTML = "";
+                    let tickMark = "";
+                    let paymentDisplay = `<p>Payment: ${pPayment}</p>`;
 
-                    // Traking area
-                    const trackingSection = o.trackingID ? `
-                        <div class="tracking-box">
-                            <p style="font-size:12px; color:#666;">Tracking ID: <b>${o.trackingID}</b></p>
-                            <a href="https://www.delhivery.com/track/pkg-detail?waybill=${o.trackingID}" target="_blank" class="track-link">
-                                <i class="fas fa-truck"></i> Track Courier Now
-                            </a>
-                        </div>
-                    ` : '';
+                    const lowerStatus = status.toLowerCase();
+                    const isSuccessful = ["confirmed", "shipped", "delivered"].includes(lowerStatus);
+                    
+                    if (lowerStatus === "pending") {
+                        statusClass = "status-pending";
+                        actionBtnHTML = `<button class="action-btn cancel-btn" onclick="cancelOrder('${orderId}')">Cancel Order</button>`;
+                    } else if (lowerStatus === "confirmed") {
+                        statusClass = "status-confirmed";
+                        tickMark = `<i class="fas fa-check-circle"></i>`;
+                    } else if (lowerStatus === "delivered") {
+                        statusClass = "status-delivered";
+                        tickMark = `<i class="fas fa-check-circle"></i>`;
+                        actionBtnHTML = `<button class="action-btn return-btn" onclick="returnOrder('${orderId}')">Return Product</button>`;
+                    } else if (lowerStatus === "shipped") {
+                        statusClass = "status-shipped";
+                        tickMark = `<i class="fas fa-truck"></i>`;
+                    } else if (lowerStatus === "rejected") {
+                        statusClass = "status-rejected";
+                        tickMark = `<i class="fas fa-times-circle"></i>`;
+                        
+                        if(order.rejectReason) {
+                            let reasonText = order.rejectReason;
+                            // Payment Issue പ്രത്യേകം കാണിക്കാൻ
+                            if(reasonText.toLowerCase().includes("payment issue")) {
+                                reasonText = "Payment Issue ❌";
+                            }
+                            rejectReasonHTML = `<div class="reject-reason"><strong>Order Rejected:</strong> ${reasonText}</div>`;
+                        }
+                    }
+
+                    // Payment success message logic (Only if not rejected)
+                    if (isSuccessful && pPayment.includes("UPI")) {
+                        paymentDisplay = `<p class="payment-success"><i class="fas fa-shield-alt"></i> Your payment is successful</p>`;
+                    }
 
                     container.innerHTML += `
-                        <div class="order-card">
+                        <div class="order-card" style="border-left-color: ${lowerStatus === 'rejected' ? '#dc3545' : (isSuccessful ? '#0f5132' : '#ff9900')}">
                             <div class="order-header">
-                                <strong>${o.product}</strong>
-                                <span class="status-badge ${statusClass}">${currentStatus}</span>
+                                <strong>${pName}</strong>
+                                <span class="status-badge ${statusClass}">${tickMark} ${status}</span>
                             </div>
                             <div class="order-details">
-                                <p>Price: ₹${o.price}</p>
-                                <p>Payment: ${o.payment}</p>
-                                ${o.rejectReason ? `<p style="color:red;"><b>Reason:</b> ${o.rejectReason}</p>` : ''}
-                                ${trackingSection}
+                                <p>Price: ₹${pPrice}</p>
+                                ${paymentDisplay}
+                                ${rejectReasonHTML}
                             </div>
-                            ${canCancel ? `<button class="cancel-btn" onclick="cancelOrder('${id}')">Cancel Order</button>` : ''}
+                            ${actionBtnHTML}
                         </div>
                     `;
                 }
             });
 
-            if(!found) {
-                container.innerHTML = "<div class='no-orders'>THIS NUMBER ORDER NOT FOUND</div>";
+            if (!found) {
+                container.innerHTML = "<div class='no-orders'>No orders found for this account.</div>";
             }
         });
-    };
+    });
 
     window.cancelOrder = (id) => {
         Swal.fire({
             title: 'Cancel Order?',
-            text: "ORDER CENCEL NOW?",
+            text: "Are you sure you want to cancel this order?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Yes, Cancel It!'
+            confirmButtonText: 'Yes, Cancel it'
         }).then((result) => {
             if (result.isConfirmed) {
                 remove(ref(db, 'orders/' + id)).then(() => {
-                        Swal.fire('Cancelled!', 'ARE YOU SURE', 'success');
-                    });
+                    Swal.fire('Cancelled!', 'Your order has been removed.', 'success');
+                });
+            }
+        });
+    };
+
+    window.returnOrder = (id) => {
+        Swal.fire({
+            title: 'Return Product',
+            text: 'Reason for return:',
+            input: 'select',
+            inputOptions: {
+                'damage': 'Damaged Product',
+                'quality': 'Low Quality',
+                'wrong': 'Wrong Item Received'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#1a1a2e'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                update(ref(db, 'orders/' + id), {
+                    status: 'Return Requested',
+                    returnReason: result.value
+                }).then(() => {
+                    Swal.fire('Request Sent', 'We will contact you soon.', 'success');
+                });
             }
         });
     };
 </script>
-
 </body>
 </html>
