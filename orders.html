@@ -89,10 +89,11 @@
                 const order = childSnapshot.val();
                 const orderId = childSnapshot.key;
 
-                // ഈ ലോജിക് ഉപയോഗിച്ച് നോക്കുക
-                // ഇപ്പൊഴത്തെ isMyOrder മാറ്റി ഇത് നൽകുക
-                const isMyOrder = true;
-               
+                // ഫിൽട്ടറിംഗ് ലോജിക്: UID, ഇമെയിൽ അല്ലെങ്കിൽ മൊബൈൽ നമ്പർ എന്നിവ ചെക്ക് ചെയ്യുന്നു
+                const isMyOrder = (
+                    (userMob && (order.mobile == userMob || order.userMob == userMob || order.user == userMob || order.customerMobile == userMob)) || 
+                    (Email && (order.email == userEmail || order.email == userEmail))
+                );
 
                 if (isMyOrder) {
                     found = true;
