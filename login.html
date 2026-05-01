@@ -98,20 +98,11 @@
         }
 
         .btn:active { transform: scale(0.98); }
-        
-        .google-btn {
-            width: 100%; padding: 12px; background: white; border: 1.5px solid #eee; 
-            border-radius: 10px; cursor: pointer; margin-top: 15px; font-size: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            font-weight: 600; color: #555; transition: 0.3s;
-        }
-        .google-btn:hover { background: #fafafa; border-color: #ddd; }
 
         .divider { text-align: center; margin: 20px 0; color: #aaa; font-size: 13px; position: relative; }
         .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: #eee; }
         .divider::before { left: 0; } .divider::after { right: 0; }
 
-        /* Modern SweetAlert Custom Styles */
         .custom-swal-popup {
             border-radius: 24px !important;
             padding: 20px !important;
@@ -131,11 +122,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
-        @media (max-width: 400px) {
-            .auth-card { padding: 20px; }
-            .btn { font-size: 15px; }
-        }
     </style>
 </head>
 <body>
@@ -146,6 +132,7 @@
         <div class="tab" id="tab-register" onclick="switchTab('register')">Register</div>
     </div>
 
+    <!-- Login Form -->
     <div id="loginBox" class="form-box active">
         <div class="input-group">
             <label>Mobile / Email</label>
@@ -156,14 +143,9 @@
             <input type="password" id="lPass" placeholder="••••••••">
         </div>
         <button class="btn" onclick="login()">Sign In</button>
-        
-        <div class="divider">OR CONTINUE WITH</div>
-        
-        <button class="google-btn" onclick="googleLogin()">
-            <img src="https://img.icons8.com/color/20/000000/google-logo.png"/> Google
-        </button>
     </div>
 
+    <!-- Register Form -->
     <div id="registerBox" class="form-box">
         <div class="input-group"><label>Shop/User Name</label><input type="text" id="rName" placeholder="Full Name"></div>
         <div class="input-group"><label>Mobile Number</label><input type="tel" id="rMob" placeholder="10 Digit Number"></div>
@@ -179,8 +161,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -194,22 +176,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
-    // Enhanced Modern SweetAlert Helper
     const showAlert = (title, text, icon) => {
         return Swal.fire({
             title: title,
             text: text,
             icon: icon,
-            iconColor: icon === 'success' ? '#2ecc71' : '#ff9900',
-            showConfirmButton: icon !== 'success',
             confirmButtonText: 'Continue',
             confirmButtonColor: '#ff9900',
             timer: icon === 'success' ? 1800 : null,
-            timerProgressBar: icon === 'success',
-            showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
-            hideClass: { popup: 'animate__animated animate__zoomOut animate__faster' },
             customClass: {
                 popup: 'custom-swal-popup',
                 title: 'custom-swal-title',
@@ -218,138 +193,76 @@
         });
     };
 
-   window.googleLogin = async () => {
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        await update(ref(db, 'users/' + user.uid), {
-            name: user.displayName,
-            email: user.email,
-            profilePic: user.photoURL,
-            lastLogin: new Date().toLocaleString('en-IN'),
-            role: 'user'
-        });
-
-        localStorage.setItem('userRole', 'user');
-        localStorage.setItem('userName', user.displayName);
-        
-        // പ്രധാനപ്പെട്ട മാറ്റം ഇവിടെയാണ്: 
-        // ഓർഡർ പേജിൽ ചെക്ക് ചെയ്യാൻ UID-യും ഇമെയിലും സേവ് ചെയ്യുന്നു.
-        localStorage.setItem('userMob', user.uid); 
-        localStorage.setItem('userEmail', user.email);
-
-        showAlert("Welcome!", `Logged in as ${user.displayName}`, "success").then(() => {
-            window.location.href = 'index.html';
-        });
-    } catch (error) {
-        showAlert("Login Error", "Google login failed.", "error");
-    }
-};
-    // Traditional Login
+    // Traditional Login Logic
     window.login = async () => {
         const userVal = document.getElementById('lUser').value.trim();
         const passVal = document.getElementById('lPass').value.trim();
 
-        if(!userVal || !passVal) return showAlert("Empty Fields", "Please fill all fields", "warning");
+        if(!userVal || !passVal) return showAlert("Empty Fields", "Fields fill cheyyuka", "warning");
 
+        // Admin Login
         if(userVal.includes('@')) {
             try {
                 await signInWithEmailAndPassword(auth, userVal, passVal);
                 localStorage.setItem('userRole', 'admin');
+                localStorage.setItem('userMob', userVal);
                 window.location.href = 'index.html';
-            } catch (e) { showAlert("Access Denied", "Invalid Admin credentials", "error"); }
+            } catch (e) { 
+                showAlert("Access Denied", "Invalid Admin credentials", "error"); 
+            }
             return;
         }
 
+        // Normal User Login
         get(child(ref(db), `users/${userVal}`)).then((snapshot) => {
-            if (snapshot.exists() && snapshot.val().pass === passVal) {
-                localStorage.setItem('userRole', 'user');
-                localStorage.setItem('userMob', userVal); 
-                window.location.href = 'index.html';
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if(userData.pass === passVal) {
+                    localStorage.setItem('userRole', 'user');
+                    localStorage.setItem('userMob', userVal); 
+                    localStorage.setItem('userName', userData.name);
+                    showAlert("Welcome!", `Logged in as ${userData.name}`, "success").then(() => {
+                        window.location.href = 'index.html';
+                    });
+                } else {
+                    showAlert("Login Failed", "Password thettannu", "error");
+                }
             } else {
-                showAlert("Login Failed", "Incorrect mobile or password", "error");
+                showAlert("Login Failed", "Ee number register cheythittilla", "error");
             }
         });
     };
 
-    // Register Function
-  // --- Register Function Update ---
-window.register = async () => {
-    const name = document.getElementById('rName').value.trim();
-    const mob = document.getElementById('rMob').value.trim();
-    const house = document.getElementById('rHouse').value.trim();
-    const pin = document.getElementById('rPin').value.trim();
-    const state = document.getElementById('rState').value.trim();
-    const pass = document.getElementById('rPass').value.trim();
+    // Register Logic
+    window.register = async () => {
+        const name = document.getElementById('rName').value.trim();
+        const mob = document.getElementById('rMob').value.trim();
+        const house = document.getElementById('rHouse').value.trim();
+        const pin = document.getElementById('rPin').value.trim();
+        const state = document.getElementById('rState').value.trim();
+        const pass = document.getElementById('rPass').value.trim();
 
-    // Validation
-    if (!name || mob.length < 10 || !house || !pin || pass.length < 6) {
-        return showAlert("Invalid Data", "Ellam correct ayi fill cheyyuka (Password min 6 chars)", "warning");
-    }
-
-    try {
-        const snapshot = await get(child(ref(db), `users/${mob}`));
-        if (snapshot.exists()) {
-            return showAlert("Wait!", "Ee number munne register cheythittundu", "warning");
+        if (!name || mob.length < 10 || !house || !pin || pass.length < 6) {
+            return showAlert("Invalid Data", "Ellam correct ayi fill cheyyuka", "warning");
         }
 
-        // Data saving with all fields
-        await set(ref(db, 'users/' + mob), { 
-            name, 
-            mob, 
-            pass, 
-            address: house,
-            pincode: pin,
-            state: state,
-            lastLogin: "New User",
-            role: 'user'
-        });
-
-        showAlert("Success", "Account ready ayi!", "success").then(() => window.location.reload());
-    } catch (error) {
-        showAlert("Error", "Registration failed. Pinne sremikkuka.", "error");
-    }
-};
-
-// --- Traditional Login Update ---
-window.login = async () => {
-    const userVal = document.getElementById('lUser').value.trim();
-    const passVal = document.getElementById('lPass').value.trim();
-
-    if(!userVal || !passVal) return showAlert("Empty Fields", "Fields fill cheyyuka", "warning");
-
-    // Admin Login (Email vechu login cheyyan)
-    if(userVal.includes('@')) {
         try {
-            await signInWithEmailAndPassword(auth, userVal, passVal);
-            localStorage.setItem('userRole', 'admin');
-            window.location.href = 'index.html';
-        } catch (e) { 
-            showAlert("Access Denied", "Invalid Admin credentials", "error"); 
-        }
-        return;
-    }
-
-    // Normal User Login (Mobile number vechu)
-    get(child(ref(db), `users/${userVal}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            if(userData.pass === passVal) {
-                localStorage.setItem('userRole', 'user');
-                localStorage.setItem('userMob', userVal); 
-                localStorage.setItem('userName', userData.name); // Name koodi save cheyyunnu
-                window.location.href = 'index.html';
-            } else {
-                showAlert("Login Failed", "Password thettannu", "error");
+            const snapshot = await get(child(ref(db), `users/${mob}`));
+            if (snapshot.exists()) {
+                return showAlert("Wait!", "Ee number munne register cheythittundu", "warning");
             }
-        } else {
-            showAlert("Login Failed", "Ee number register cheythittilla", "error");
-        }
-    });
-};
 
-    // Tab Switcher
+            await set(ref(db, 'users/' + mob), { 
+                name, mob, pass, address: house, pincode: pin, state: state,
+                role: 'user'
+            });
+
+            showAlert("Success", "Account ready ayi! Login cheyyuka.", "success").then(() => window.location.reload());
+        } catch (error) {
+            showAlert("Error", "Registration failed.", "error");
+        }
+    };
+
     window.switchTab = (t) => {
         document.getElementById('loginBox').classList.toggle('active', t === 'login');
         document.getElementById('registerBox').classList.toggle('active', t === 'register');
