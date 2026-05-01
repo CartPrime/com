@@ -97,19 +97,17 @@
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         const mobField = document.getElementById('custMob'); 
-        if (userMob && userMob.length >= 10 && !isNaN(userMob)) {
-    
-    mobField.value = userMob;
-    mobField.readOnly = true;
-    mobField.style.backgroundColor = "#f0f0f0"; // ലോക്ക് ആണെന്ന് മനസ്സിലാക്കാൻ ഒരു നിറം
-} else {
-    // ഗൂഗിൾ ലോഗിൻ ആണെങ്കിൽ (അല്ലെങ്കിൽ നമ്പർ ഇല്ലെങ്കിൽ) ടൈപ്പ് ചെയ്യാൻ അനുവദിക്കുക
-    mobField.value = "";
-    mobField.readOnly = false;
-    mobField.placeholder = "Enter Mobile Number";
-    mobField.style.backgroundColor = "#ffffff";
-}
-    };
+ 
+      if (userMob && userMob.length >= 10 && !isNaN(userMob)) {
+        mobField.value = userMob;
+        mobField.readOnly = true;
+        mobField.style.backgroundColor = "#f0f0f0";
+      } else {
+       mobField.value = "";
+      mobField.readOnly = false;
+      mobField.placeholder = "Enter Mobile Number";
+      mobField.style.backgroundColor = "#ffffff";
+     }
 
     window.handlePayment = () => {
         const name = document.getElementById('custName').value;
