@@ -89,14 +89,13 @@
                 const order = childSnapshot.val();
                 const orderId = childSnapshot.key;
 
-                // ഫിൽട്ടറിംഗ് ലോജിക്: UID, ഇമെയിൽ അല്ലെങ്കിൽ മൊബൈൽ നമ്പർ എന്നിവ ചെക്ക് ചെയ്യുന്നു
-                // പഴയ കോഡിന് പകരം ഇത് നൽകുക
-const isMyOrder = (
-    (userMob && (order.userId == userMob || order.mobile == userMob || order.userMob == userMob)) || 
-    (userEmail && (order.email == userEmail || order.customerEmail == userEmail)) ||
-    // താഴെയുള്ള വരി അധികമായി ചേർക്കുക: ഇത് ഓർഡറിലെ പേരും ലോഗിൻ പേരും ഒന്നാണോ എന്ന് നോക്കും
-    (userName && order.checkout_name == userName)
+                // ഈ ലോജിക് ഉപയോഗിച്ച് നോക്കുക
+ const isMyOrder = (
+    (userMob && (order.userId === userMob || order.mobile == userMob || order.userMob == userMob)) || 
+    (userEmail && (order.email === userEmail || order.customerEmail === userEmail)) ||
+    (order.checkout_name && userName && order.checkout_name.includes(userName))
 );
+               
 
                 if (isMyOrder) {
                     found = true;
