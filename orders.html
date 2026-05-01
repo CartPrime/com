@@ -41,7 +41,7 @@
 <div class="container">
     <div class="header">
         <h1>📦 My Orders</h1>
-        <p id="userDisplay">Loading...</p>
+        <p id="userDisplay">Loading profile...</p>
     </div>
 
     <div id="orderContainer">
@@ -68,12 +68,18 @@
     const db = getDatabase(app);
 
     document.addEventListener('DOMContentLoaded', () => {
+        // LocalStorage-ൽ നിന്ന് വിവരങ്ങൾ എടുക്കുന്നു
         const userMob = localStorage.getItem('userMob');
-        if(!userMob) {
+        const userEmail = localStorage.getItem('userEmail'); // Google ലോഗിൻ ആണെങ്കിൽ ഇമെയിൽ ഉണ്ടാകും
+        const userName = localStorage.getItem('userName');   // Google പ്രൊഫൈൽ പേര്
+
+        if(!userMob && !userEmail) {
             window.location.href = 'login.html';
             return;
         }
-        document.getElementById('userDisplay').innerText = "Account: " + userMob;
+
+        // ഹെഡറിൽ പേര് കാണിക്കുന്നു (പേര് ഇല്ലെങ്കിൽ മൊബൈൽ നമ്പർ കാണിക്കും)
+        document.getElementById('userDisplay').innerText = "Account: " + (userName || userMob || userEmail);
 
         const container = document.getElementById('orderContainer');
         onValue(ref(db, 'orders'), (snapshot) => {
@@ -84,11 +90,18 @@
                 const order = childSnapshot.val();
                 const orderId = childSnapshot.key;
 
-                if (order.mobile == userMob || order.userMob == userMob || order.customerMobile == userMob) {
+                // Google ഇമെയിൽ വഴിയോ മൊബൈൽ വഴിയോ ഉള്ള ഓർഡറുകൾ ഫിൽട്ടർ ചെയ്യുന്നു
+                const isMyOrder = (order.mobile == userMob || 
+                                   order.userMob == userMob || 
+                                   order.customerMobile == userMob || 
+                                   (userEmail && order.email == userEmail) || 
+                                   (userEmail && order.customerEmail == userEmail));
+
+                if (isMyOrder) {
                     found = true;
                     const status = (order.status || 'Pending').trim();
-                    const pName = order.checkout_name || order.product || order.productName || "Product Name Not Found";
-                    const pPrice = order.checkout_price || order.price || order.productPrice || "0";
+                    const pName = order.checkout_name || order.product || order.productName || "Product";
+                    const pPrice = order.checkout_price || order.price || "0";
                     let pPayment = order.payment || 'COD';
                     
                     let actionBtnHTML = "";
@@ -116,19 +129,12 @@
                     } else if (lowerStatus === "rejected") {
                         statusClass = "status-rejected";
                         tickMark = `<i class="fas fa-times-circle"></i>`;
-                        
                         if(order.rejectReason) {
-                            let reasonText = order.rejectReason;
-                            // Payment Issue പ്രത്യേകം കാണിക്കാൻ
-                            if(reasonText.toLowerCase().includes("payment issue")) {
-                                reasonText = "Payment Issue ❌";
-                            }
-                            rejectReasonHTML = `<div class="reject-reason"><strong>Order Rejected:</strong> ${reasonText}</div>`;
+                            rejectReasonHTML = `<div class="reject-reason"><strong>Order Rejected:</strong> ${order.rejectReason}</div>`;
                         }
                     }
 
-                    // Payment success message logic (Only if not rejected)
-                    if (isSuccessful && pPayment.includes("UPI")) {
+                    if (isSuccessful && (pPayment.includes("UPI") || pPayment.toLowerCase().includes("online"))) {
                         paymentDisplay = `<p class="payment-success"><i class="fas fa-shield-alt"></i> Your payment is successful</p>`;
                     }
 
