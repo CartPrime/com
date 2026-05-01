@@ -3,67 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - Payment</title>
+    <title>Cart Prime - Secure Checkout</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .checkout-box { background: white; width: 100%; max-width: 480px; padding: 25px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
-        h2 { margin-bottom: 20px; border-bottom: 2px solid #ff9900; padding-bottom: 10px; color: #1a1a2e; }
-        
-        .item-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
-        .item-info img { width: 70px; height: 70px; object-fit: contain; border-radius: 8px; }
-
-        .address-section { background: #fff9f0; padding: 15px; border-radius: 10px; border-left: 4px solid #ff9900; margin-bottom: 20px; position: relative; }
-        .address-section h4 { font-size: 13px; color: #ff9900; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
-        .change-addr-btn { position: absolute; top: 15px; right: 15px; font-size: 11px; color: #ff9900; text-decoration: none; font-weight: bold; }
-
-        .payment-methods { margin: 20px 0; border-top: 1px solid #eee; padding-top: 15px; }
-        .pay-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 10px; transition: 0.3s; }
-        .pay-option:hover { border-color: #ff9900; background: #fffcf5; }
-        .pay-option input { accent-color: #ff9900; transform: scale(1.2); }
-
-        .confirm-btn { width: 100%; padding: 15px; background: #ff9900; color: #1a1a2e; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); transition: 0.3s; }
-        .confirm-btn:hover { background: #e68a00; transform: translateY(-2px); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f2f5; padding: 15px; color: #1a1a2e; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h2 { margin-bottom: 20px; text-align: center; font-weight: 800; color: #1a1a2e; }
+        .order-box { background: #fff9f0; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; border: 1px dashed #ff9900; }
+        .order-box img { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; }
+        .order-info b { font-size: 16px; display: block; }
+        .order-info span { color: #ff9900; font-weight: bold; font-size: 18px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #666; text-transform: uppercase; }
+        .form-group input, .form-group textarea { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; transition: 0.3s; }
+        .form-group input:focus { border-color: #ff9900; box-shadow: 0 0 8px rgba(255, 153, 0, 0.2); outline: none; }
+        .payment-status { background: #e8f5e9; padding: 12px; border-radius: 10px; color: #2e7d32; display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 20px; font-size: 14px; }
+        .btn-pay { background: #1a1a2e; color: #ff9900; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-pay:hover { background: #252545; transform: translateY(-2px); }
+        #qrModal { display: none; text-align: center; padding: 20px; }
+        .qr-img { width: 200px; height: 200px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="checkout-box">
-    <h2>Complete Order</h2>
-    
-    <div class="item-info">
-        <img id="displayImg" src="" alt="Product">
-        <div>
-            <h3 id="displayName">Loading...</h3>
-            <p style="color: #28a745; font-weight: bold; font-size: 18px;">₹<span id="displayPrice">0</span></p>
+<div class="container">
+    <h2><i class="fas fa-shield-alt"></i> Checkout</h2>
+
+    <!-- Product Summary -->
+    <div class="order-box">
+        <img id="pImg" src="https://via.placeholder.com/70" alt="Product">
+        <div class="order-info">
+            <b id="pName">Loading Product...</b>
+            <span id="pPrice">₹0.00</span>
         </div>
     </div>
 
-    <div class="address-section">
-        <a href="profile.html" class="change-addr-btn">CHANGE</a>
-        <h4>Delivery to:</h4>
-        <p id="userNameDisplay" style="font-weight: bold; font-size: 15px; color: #333;">Loading...</p>
-        <p id="userAddressDisplay" style="font-size: 13px; color: #666; margin-top: 4px; line-height: 1.4;">Fetching your address...</p>
+    <!-- Customer Details -->
+    <div class="form-group">
+        <label>Delivery Name</label>
+        <input type="text" id="custName" placeholder="Full name of receiver">
+    </div>
+    
+    <div class="form-group">
+        <label>Mobile Number</label>
+        <input type="number" id="custMob" readonly style="background: #f9f9f9; color: #888;">
     </div>
 
-    <div class="payment-methods">
-        <h4 style="margin-bottom: 12px; font-size: 15px; color: #444;">Select Payment Method:</h4>
-        
-        <label class="pay-option">
-            <input type="radio" name="payMethod" value="UPI"> UPI (G-Pay / PhonePe / Paytm)
-        </label>
+    <div class="form-group">
+        <label>Full Delivery Address</label>
+        <textarea id="custAddr" rows="3" placeholder="House/Flat No, Landmark, Pincode..."></textarea>
     </div>
 
-    <input type="file" id="payScreenshot" accept="image/*" style="display: none;">
+    <div class="payment-status">
+        <i class="fas fa-check-circle"></i>
+        Only UPI Payment Accepted (Safe & Fast)
+    </div>
 
-    <button class="confirm-btn" onclick="handleOrder()">Confirm & Order</button>
+    <button class="btn-pay" onclick="handlePayment()">
+        <i class="fas fa-wallet"></i> PAY & PLACE ORDER
+    </button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -77,106 +82,100 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const pName = localStorage.getItem('tempProdName');
-    const pPrice = localStorage.getItem('tempProdPrice');
-    const pImg = localStorage.getItem('tempProdImg');
-    const userMob = localStorage.getItem('userMob');
+    window.onload = () => {
+        const name = localStorage.getItem('checkout_name');
+        const price = localStorage.getItem('checkout_price');
+        const img = localStorage.getItem('checkout_img');
+        const userMob = localStorage.getItem('userMob');
 
-    if (pName) {
-        document.getElementById('displayName').innerText = pName;
-        document.getElementById('displayPrice').innerText = pPrice;
-        document.getElementById('displayImg').src = pImg;
-    }
-
-    onValue(ref(db, 'users/' + userMob), (snap) => {
-        const user = snap.val();
-        if (user) {
-            document.getElementById('userNameDisplay').innerText = user.name || "User";
-            if(user.address) {
-                document.getElementById('userAddressDisplay').innerText = user.address;
-            } else {
-                document.getElementById('userAddressDisplay').innerHTML = '<span style="color:red;">Address not found! Click CHANGE to add.</span>';
-            }
-        }
-    }, { onlyOnce: true });
-
-    window.handleOrder = () => {
-        const address = document.getElementById('userAddressDisplay').innerText;
-        
-        if (address.includes("not found")) {
-            Swal.fire('Wait!', 'Please add your address in profile first.', 'warning');
+        if(!name || !userMob) {
+            Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
             return;
         }
 
-        const method = document.querySelector('input[name="payMethod"]:checked').value;
-
-        if (method === "UPI") {
-            const upiUrl = `upi://pay?pa=9495490980@fam&pn=CartPrime&am=${pPrice}&cu=INR`;
-            window.location.href = upiUrl;
-
-            setTimeout(() => {
-                Swal.fire({
-                    title: 'Upload Proof',
-                    text: 'Payment Screen Shot Upload And Order Place ',
-                    icon: 'image',
-                    showCancelButton: true,
-                    confirmButtonText: 'Select Image',
-                    confirmButtonColor: '#ff9900'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const fileInput = document.getElementById('payScreenshot');
-                        fileInput.click();
-                        fileInput.onchange = () => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => saveOrderToFirebase("Paid (UPI)", reader.result);
-                            reader.readAsDataURL(fileInput.files[0]);
-                        };
-                    }
-                });
-            }, 3000);
-        } else {
-            saveOrderToFirebase("No Screenshot");
-        }
+        document.getElementById('pName').innerText = name;
+        document.getElementById('pPrice').innerText = "₹" + price;
+        document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
+        document.getElementById('custMob').value = userMob;
     };
 
-    function saveOrderToFirebase(payStatus, proofData) {
-        const orderInfo = {
-            product: pName,
-            price: pPrice,
-            customer: document.getElementById('userNameDisplay').innerText,
-            address: document.getElementById('userAddressDisplay').innerText,
-            mobile: userMob,
-            date: new Date().toLocaleString('en-IN'),
-            payment: payStatus,
-            proof: proofData,
-            status: "Order Placed"
+    window.handlePayment = () => {
+        const name = document.getElementById('custName').value;
+        const addr = document.getElementById('custAddr').value;
+        const mob = document.getElementById('custMob').value;
+        const amount = document.getElementById('pPrice').innerText.replace('₹','');
+
+        if(!name || !addr) {
+            return Swal.fire("Empty Fields", "Please fill name and address to continue.", "warning");
+        }
+
+        const myUpiId = "9778722796@fam"; 
+        const upiLink = `upi://pay?pa=${myUpiId}&pn=Cart Prime&am=${amount}&cu=INR`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
+
+        Swal.fire({
+            title: 'Confirm Payment',
+            html: `
+                <div style="text-align:center">
+                    <p>Click <b>Pay Now</b> to open UPI apps or Scan QR</p>
+                    <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
+                    <p style="font-size:12px; color:red;">Pay ₹${amount} and come back here</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Pay Now (Open Apps)',
+            confirmButtonColor: '#28a745',
+            cancelButtonText: 'I Have Paid',
+            cancelButtonColor: '#1a1a2e'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = upiLink;
+                setTimeout(() => {
+                    checkFinalConfirmation(name, addr, mob, amount);
+                }, 3000);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                saveOrder(name, addr, mob, amount);
+            }
+        });
+    };
+
+    function checkFinalConfirmation(name, addr, mob, amount) {
+        Swal.fire({
+            title: 'Payment Status',
+            text: "Did you complete the payment?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Place Order',
+            cancelButtonText: 'No, Try Again'
+        }).then((res) => {
+            if(res.isConfirmed) saveOrder(name, addr, mob, amount);
+        });
+    }
+
+    function saveOrder(name, addr, mob, amount) {
+        const orderData = {
+            checkout_name: document.getElementById('pName').innerText,
+            checkout_price: amount,
+            checkout_img: document.getElementById('pImg').src,
+            userName: name,
+            userMob: mob,
+            address: addr,
+            payment: "UPI (Pending Verification)",
+            status: "Pending",
+            orderDate: new Date().toLocaleString()
         };
 
-        push(ref(db, 'orders'), orderInfo).then(() => {
-            
-            // --- OneSignal Notification Logic Start ---
-            const notificationBody = {
-                app_id: "12215d52-ff48-476d-8f20-08396274d66e", // ഇവിടെ നിങ്ങളുടെ വൺസിഗ്നൽ APP ID നൽകുക
-                included_segments: ["All"],
-                headings: { "en": "New Order Recevide 📦" },
-                contents: { "en": `${orderInfo.customer} customer ₹${orderInfo.price} Big Order Arrivell` }
-            };
-
-            fetch("https://onesignal.com/api/v1/notifications", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": "Basic os_v2_app_ciqv2ux7jbdw3dzaba4we5gwnzeiyjmezigub3ffyxx7l3qvccbo4txm6ap5y4yszaiqvlhi55ikqzijpcxueat7u2r5dijpbuu42ha" // ഇവിടെ നിങ്ങളുടെ REST API KEY നൽകുക
-                },
-                body: JSON.stringify(notificationBody)
-            })
-            .then(res => res.json())
-            .then(data => console.log("OneSignal Success:", data))
-            .catch(err => console.error("OneSignal Error:", err));
-            // --- OneSignal Notification Logic End ---
-
-            Swal.fire('Success!', 'Order Placed successfully', 'success')
-            .then(() => { window.location.href = 'index.html'; });
+        const ordersRef = ref(db, 'orders');
+        const newOrderRef = push(ordersRef);
+        
+        set(newOrderRef, orderData).then(() => {
+            Swal.fire({
+                title: "Order Placed!",
+                text: "Your order is pending verification.",
+                icon: "success"
+            }).then(() => {
+                window.location.href = "orders.html";
+            });
         });
     }
 </script>
