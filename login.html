@@ -4,162 +4,110 @@
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CartPrime - Secure Auth</title>
+    <title>CartPrime - Smart Admin & Auth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #ff9900;
-            --dark-bg: #1a1a2e;
-            --light-bg: #f4f7f6;
-        }
+        :root { --primary: #ff9900; --dark-bg: #1a1a2e; --red: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f4f7f6; min-height: 100vh; padding: 20px; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* Auth Card Styles */
+        .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .auth-card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        body { 
-            background: linear-gradient(135deg, var(--dark-bg), #16213e); 
-            min-height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 15px; 
-        }
-
-        .auth-card { 
-            background: white; 
-            width: 100%; 
-            max-width: 420px; 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
-        }
-
-        .tabs { 
-            display: flex; 
-            margin-bottom: 25px; 
-            background: #f1f1f1;
-            border-radius: 12px;
-            padding: 5px;
-        }
-
-        .tab { 
-            flex: 1; 
-            padding: 12px; 
-            text-align: center; 
-            cursor: pointer; 
-            font-weight: 700; 
-            color: #666; 
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-
-        .tab.active { 
-            color: var(--primary); 
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        .form-box { display: none; animation: fadeIn 0.4s ease; }
-        .form-box.active { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* Admin Section Styles */
+        .admin-panel { max-width: 1000px; margin: 0 auto; display: none; }
+        .section-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        .tabs { display: flex; margin-bottom: 20px; background: #eee; border-radius: 10px; padding: 5px; }
+        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; border-radius: 8px; font-weight: bold; }
+        .tab.active { background: var(--primary); color: white; }
 
         .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #444; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; }
+        input, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; outline: none; }
         
-        input { 
-            width: 100%; 
-            padding: 12px 15px; 
-            border: 1.5px solid #eee; 
-            border-radius: 10px; 
-            outline: none; 
-            font-size: 15px;
-            transition: 0.3s;
-        }
-        
-        input:focus { border-color: var(--primary); background: #fffcf5; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-reject { background: var(--red); color: white; margin-top: 5px; }
+        .btn-edit { background: #3498db; color: white; }
 
-        .btn { 
-            width: 100%; 
-            padding: 14px; 
-            background: var(--primary); 
-            border: none; 
-            font-weight: bold; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            margin-top: 10px; 
-            font-size: 16px; 
-            color: white; 
-            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
-            transition: 0.3s;
-        }
-
-        .btn:active { transform: scale(0.98); }
-        
-        .google-btn {
-            width: 100%; padding: 12px; background: white; border: 1.5px solid #eee; 
-            border-radius: 10px; cursor: pointer; margin-top: 15px; font-size: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            font-weight: 600; color: #555; transition: 0.3s;
-        }
-        .google-btn:hover { background: #fafafa; border-color: #ddd; }
-
-        .divider { text-align: center; margin: 20px 0; color: #aaa; font-size: 13px; position: relative; }
-        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: #eee; }
-        .divider::before { left: 0; } .divider::after { right: 0; }
-
-        /* Small screen adjustments */
-        @media (max-width: 400px) {
-            .auth-card { padding: 20px; }
-            .btn { font-size: 15px; }
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .item-card { border: 1px solid #eee; padding: 15px; border-radius: 12px; position: relative; }
+        .status-badge { padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="auth-card">
+<!-- Login/Register UI -->
+<div id="authUI" class="auth-container">
+    <div class="auth-card">
+        <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="switchAuthTab('login')">Login</div>
+            <div class="tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+        </div>
+        <div id="loginBox">
+            <input type="text" id="lUser" placeholder="Mobile or Email" style="margin-bottom:10px">
+            <input type="password" id="lPass" placeholder="Password" style="margin-bottom:10px">
+            <button class="btn btn-primary" onclick="login()">Sign In</button>
+        </div>
+        <div id="registerBox" style="display:none">
+            <input type="text" id="rName" placeholder="Full Name" style="margin-bottom:10px">
+            <input type="tel" id="rMob" placeholder="Mobile Number" style="margin-bottom:10px">
+            <input type="password" id="rPass" placeholder="Password (Min 6)" style="margin-bottom:10px">
+            <button class="btn btn-primary" onclick="register()">Create Account</button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Panel UI -->
+<div id="adminUI" class="admin-panel">
+    <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+        <h2>Admin Dashboard</h2>
+        <button class="btn btn-primary" style="width:auto" onclick="logout()">Logout</button>
+    </div>
+
     <div class="tabs">
-        <div class="tab active" id="tab-login" onclick="switchTab('login')">Login</div>
-        <div class="tab" id="tab-register" onclick="switchTab('register')">Register</div>
+        <div class="tab active" onclick="showSection('add')">Add Product</div>
+        <div class="tab" onclick="showSection('inventory')">Inventory</div>
+        <div class="tab" onclick="showSection('orders')">Orders</div>
     </div>
 
-    <div id="loginBox" class="form-box active">
+    <!-- Add Product Section -->
+    <div id="sec-add" class="section-card">
+        <h3>Add New Product</h3><br>
         <div class="input-group">
-            <label>Mobile / Email</label>
-            <input type="text" id="lUser" placeholder="Enter Mobile or Email">
+            <label>Product Name</label>
+            <input type="text" id="pName">
         </div>
         <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="lPass" placeholder="••••••••">
+            <label>Image Links (Comma separated for multiple images)</label>
+            <textarea id="pImages" placeholder="https://link1.com, https://link2.com"></textarea>
         </div>
-        <button class="btn" onclick="login()">Sign In</button>
-        
-        <div class="divider">OR CONTINUE WITH</div>
-        
-        <button class="google-btn" onclick="googleLogin()">
-            <img src="https://img.icons8.com/color/20/000000/google-logo.png"/> Google
-        </button>
+        <div class="input-group">
+            <label>Price (₹)</label>
+            <input type="number" id="pPrice">
+        </div>
+        <button class="btn btn-primary" onclick="addProduct()">Save Product</button>
     </div>
 
-    <div id="registerBox" class="form-box">
-        <div class="input-group"><label>Shop/User Name</label><input type="text" id="rName" placeholder="Full Name"></div>
-        <div class="input-group"><label>Mobile Number</label><input type="tel" id="rMob" placeholder="10 Digit Number"></div>
-        <div class="input-group"><label>House No./Building</label><input type="text" id="rHouse"></div>
-        <div style="display:flex; gap:10px;">
-            <div class="input-group" style="flex:1;"><label>Pincode</label><input type="number" id="rPin"></div>
-            <div class="input-group" style="flex:1;"><label>State</label><input type="text" id="rState" value="Kerala"></div>
-        </div>
-        <div class="input-group"><label>Set Password</label><input type="password" id="rPass" placeholder="Min. 6 characters"></div>
-        <button class="btn" onclick="register()">Create Account</button>
+    <!-- Inventory Section -->
+    <div id="sec-inventory" class="section-card" style="display:none">
+        <h3>Inventory & Edit</h3><br>
+        <div id="inventoryList" class="grid"></div>
+    </div>
+
+    <!-- Orders Section -->
+    <div id="sec-orders" class="section-card" style="display:none">
+        <h3>Customer Orders</h3><br>
+        <div id="orderList" class="grid"></div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, child, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -173,101 +121,161 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
-    // SweetAlert Helper
-    const showAlert = (title, text, icon) => {
-        return Swal.fire({
-            title: title, text: text, icon: icon,
-            confirmButtonColor: '#ff9900',
-            timer: icon === 'success' ? 1500 : null,
-            showConfirmButton: icon !== 'success',
+    // --- Auth Logic ---
+    window.switchAuthTab = (type) => {
+        document.getElementById('loginBox').style.display = type === 'login' ? 'block' : 'none';
+        document.getElementById('registerBox').style.display = type === 'register' ? 'block' : 'none';
+        document.getElementById('tab-login').classList.toggle('active', type === 'login');
+        document.getElementById('tab-register').classList.toggle('active', type === 'register');
+    };
+
+    window.login = async () => {
+        const user = document.getElementById('lUser').value;
+        const pass = document.getElementById('lPass').value;
+        if(user.includes('@')) {
+            try {
+                await signInWithEmailAndPassword(auth, user, pass);
+                checkUser();
+            } catch(e) { Swal.fire("Error", "Invalid Admin", "error"); }
+        } else {
+            const snap = await get(child(ref(db), `users/${user}`));
+            if(snap.exists() && snap.val().pass === pass) {
+                localStorage.setItem('userMob', user);
+                location.href = "index.html"; // Normal User Page
+            } else {
+                Swal.fire("Error", "Wrong Credentials", "error");
+            }
+        }
+    };
+
+    const checkUser = () => {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('authUI').style.display = 'none';
+                document.getElementById('adminUI').style.display = 'block';
+                loadInventory();
+                loadOrders();
+            }
         });
     };
+    checkUser();
 
-    // Google Login
-    window.googleLogin = async () => {
-        try {
-            // Mobile-il popup block aakan sadhyatha ullathukondu error handle cheyyanam
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
+    // --- Product Logic (Multiple Images) ---
+    window.addProduct = async () => {
+        const name = document.getElementById('pName').value;
+        const price = document.getElementById('pPrice').value;
+        const links = document.getElementById('pImages').value;
+        
+        if(!name || !price || !links) return Swal.fire("Wait", "Fill all fields", "warning");
 
-            await update(ref(db, 'users/' + user.uid), {
-                name: user.displayName,
-                email: user.email,
-                profilePic: user.photoURL,
-                lastLogin: new Date().toLocaleString('en-IN'),
-                role: 'user'
+        const id = Date.now();
+        const imgArray = links.split(',').map(l => l.trim()); // String to Array
+
+        await set(ref(db, 'products/' + id), {
+            id, name, price, images: imgArray
+        });
+        
+        Swal.fire("Success", "Product Added!", "success");
+        document.getElementById('pName').value = '';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('pImages').value = '';
+    };
+
+    // --- Inventory & Edit Logic ---
+    function loadInventory() {
+        onValue(ref(db, 'products'), (snapshot) => {
+            const list = document.getElementById('inventoryList');
+            list.innerHTML = '';
+            snapshot.forEach(child => {
+                const p = child.val();
+                list.innerHTML += `
+                    <div class="item-card">
+                        <img src="${p.images[0]}" style="width:100%; height:100px; object-fit:cover; border-radius:8px">
+                        <h4>${p.name}</h4>
+                        <p>₹${p.price}</p>
+                        <button class="btn btn-edit" onclick="editProduct('${p.id}')">Edit</button>
+                    </div>
+                `;
             });
+        });
+    }
 
-            localStorage.setItem('userRole', 'user');
-            localStorage.setItem('userMob', user.uid);
+    window.editProduct = async (id) => {
+        const snap = await get(child(ref(db), `products/${id}`));
+        const p = snap.val();
 
-            showAlert("Welcome!", user.displayName, "success").then(() => {
-                window.location.href = 'index.html';
-            });
-        } catch (error) {
-            console.error(error);
-            showAlert("Login Error", "Please try again or use another method.", "error");
+        const { value: formValues } = await Swal.fire({
+            title: 'Edit Product',
+            html:
+                `<label>Name</label><input id="sw-name" class="swal2-input" value="${p.name}">` +
+                `<label>Price</label><input id="sw-price" class="swal2-input" value="${p.price}">`,
+            showCancelButton: true,
+            preConfirm: () => {
+                return {
+                    name: document.getElementById('sw-name').value,
+                    price: document.getElementById('sw-price').value
+                }
+            }
+        });
+
+        if (formValues) {
+            await update(ref(db, `products/${id}`), formValues);
+            Swal.fire("Updated!", "", "success");
         }
     };
 
-    // Traditional Login
-    window.login = async () => {
-        const userVal = document.getElementById('lUser').value.trim();
-        const passVal = document.getElementById('lPass').value.trim();
+    // --- Orders & Reject Logic ---
+    function loadOrders() {
+        onValue(ref(db, 'orders'), (snapshot) => {
+            const list = document.getElementById('orderList');
+            list.innerHTML = '';
+            snapshot.forEach(child => {
+                const o = child.val();
+                const statusColor = o.status === 'Rejected' ? 'red' : 'green';
+                list.innerHTML += `
+                    <div class="item-card">
+                        <b>Order ID: ${child.key}</b><br>
+                        <span class="status-badge" style="background:${statusColor}; color:white">${o.status || 'Pending'}</span>
+                        <p>Customer: ${o.customerName || 'N/A'}</p>
+                        <p>Total: ₹${o.total}</p>
+                        ${o.status !== 'Rejected' ? `<button class="btn btn-reject" onclick="rejectOrder('${child.key}')">Reject Order</button>` : ''}
+                    </div>
+                `;
+            });
+        });
+    }
 
-        if(!userVal || !passVal) return showAlert("Wait", "Fill all fields", "warning");
-
-        if(userVal.includes('@')) {
-            try {
-                await signInWithEmailAndPassword(auth, userVal, passVal);
-                localStorage.setItem('userRole', 'admin');
-                window.location.href = 'index.html';
-            } catch (e) { showAlert("Error", "Admin credentials invalid", "error"); }
-            return;
-        }
-
-        get(child(ref(db), `users/${userVal}`)).then((snapshot) => {
-            if (snapshot.exists() && snapshot.val().pass === passVal) {
-                localStorage.setItem('userRole', 'user');
-                localStorage.setItem('userMob', userVal); 
-                window.location.href = 'index.html';
-            } else {
-                showAlert("Error", "Invalid Login Details", "error");
+    window.rejectOrder = (id) => {
+        Swal.fire({
+            title: 'Reject Order?',
+            text: "Are you sure you want to cancel this?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, Reject'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await update(ref(db, `orders/${id}`), { status: 'Rejected' });
+                Swal.fire("Rejected", "Order status updated", "success");
             }
         });
     };
 
-    // Register Function
-    window.register = async () => {
-        const name = document.getElementById('rName').value.trim();
-        const mob = document.getElementById('rMob').value.trim();
-        const pass = document.getElementById('rPass').value.trim();
-
-        if (!name || mob.length < 10 || pass.length < 6) {
-            return showAlert("Invalid", "Please enter valid details (Pass min 6 chars)", "warning");
-        }
-
-        const snapshot = await get(child(ref(db), `users/${mob}`));
-        if (snapshot.exists()) return showAlert("Wait", "Mobile already registered!", "warning");
-
-        await set(ref(db, 'users/' + mob), { 
-            name, mob, pass, 
-            address: document.getElementById('rHouse').value,
-            lastLogin: "New User" 
+    // --- UI Helpers ---
+    window.showSection = (sec) => {
+        document.getElementById('sec-add').style.display = sec === 'add' ? 'block' : 'none';
+        document.getElementById('sec-inventory').style.display = sec === 'inventory' ? 'block' : 'none';
+        document.getElementById('sec-orders').style.display = sec === 'orders' ? 'block' : 'none';
+        
+        const tabs = document.querySelectorAll('.admin-panel .tab');
+        tabs.forEach((t, i) => {
+            t.classList.toggle('active', (sec === 'add' && i === 0) || (sec === 'inventory' && i === 1) || (sec === 'orders' && i === 2));
         });
-
-        showAlert("Success", "Account Created!", "success").then(() => window.location.reload());
     };
 
-    // Tab Switcher
-    window.switchTab = (t) => {
-        document.getElementById('loginBox').classList.toggle('active', t === 'login');
-        document.getElementById('registerBox').classList.toggle('active', t === 'register');
-        document.getElementById('tab-login').classList.toggle('active', t === 'login');
-        document.getElementById('tab-register').classList.toggle('active', t === 'register');
-    };
+    window.logout = () => signOut(auth).then(() => location.reload());
+
 </script>
 </body>
 </html>
