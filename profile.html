@@ -3,92 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart Prime - Profile Settings</title>
+    <title>CartPrime - Profile Settings</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f0f2f5; }
+        :root { --primary: #ff9900; --dark: #1a1a2e; --bg: #f0f2f5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); }
 
-        /* Header Styles */
-        nav {
-            background-color: #ffffff; padding: 10px 5%;
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* Navbar */
+        nav { background: white; padding: 10px 6%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-size: 22px; font-weight: 800; color: var(--dark); text-decoration: none; }
+        .logo span { color: var(--primary); }
+
+        .profile-container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
+        
+        /* Premium Card Design */
+        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); }
+        
+        /* Avatar Section */
+        .image-upload-wrapper { text-align: center; margin-bottom: 15px; position: relative; width: 110px; margin: 0 auto 15px; }
+        #mainProfileImg { width: 110px; height: 110px; border-radius: 35%; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .cam-icon { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white; }
+
+        /* Address & Info Boxes */
+        .info-box { 
+            background: linear-gradient(145deg, #ffffff, #fbfbfb);
+            border: 2px solid #eee; padding: 20px; border-radius: 15px; 
+            position: relative; transition: 0.3s; margin-bottom: 10px;
         }
-        .logo { font-size: 22px; font-weight: bold; color: #1a1a2e; } 
+        .info-box:hover { border-color: var(--primary); }
+        .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .tag { background: #e8f0fe; color: #1a73e8; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.5px; }
         
-        .nav-icons { display: flex; align-items: center; gap: 25px; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; cursor: pointer; position: relative; }
-        .nav-item i { font-size: 20px; margin-bottom: 3px; }
-        .nav-item span { font-size: 11px; font-weight: 500; }
+        .detail-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+        .detail-row i { color: #888; font-size: 14px; margin-top: 4px; }
+        .detail-text { font-size: 14px; color: #444; line-height: 1.6; font-weight: 500; }
 
-        /* Profile Dropdown */
-        .profile-dropdown {
-            position: absolute; top: 55px; right: 0; background: white;
-            width: 250px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            display: none; padding: 15px; z-index: 100;
+        .edit-btn-main { 
+            background: var(--dark); color: white; border: none; width: 100%; 
+            padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;
+            margin-top: 10px; transition: 0.3s;
         }
-        .profile-dropdown.active { display: block; }
-        .user-info-brief { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-        .user-info-brief img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
-        
-        .menu-link { display: flex; align-items: center; gap: 12px; padding: 12px 0; color: #444; text-decoration: none; font-size: 14px; transition: 0.2s; border: none; background: none; width: 100%; text-align: left; cursor: pointer; }
-        .menu-link:hover { color: #ff9900; }
+        .edit-btn-main:hover { background: var(--primary); color: var(--dark); }
 
-        /* Main Profile Container */
-        .profile-container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
-        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .card h2 { font-size: 18px; margin-bottom: 20px; color: #333; display: flex; align-items: center; gap: 10px; }
-
-        /* Image Upload */
-        .image-upload-wrapper { text-align: center; margin: 0 auto 20px; position: relative; width: 100px; }
-        #mainProfileImg { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #f0f2f5; }
-        .cam-icon { position: absolute; bottom: 5px; right: 5px; background: #ff9900; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; }
-
-        /* Address Box Styles */
-        .address-box { border: 1.5px solid #ff9900; background: #fff9f0; padding: 20px; border-radius: 12px; position: relative; }
-        .address-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .tag { background: #ff9900; color: white; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-        .edit-btn { background: white; border: 1px solid #ff9900; color: #ff9900; padding: 5px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; }
-        .edit-btn:hover { background: #ff9900; color: white; }
-        
-        .address-details p { margin-bottom: 4px; }
         #fileInput { display: none; }
+        .swal-input-custom { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 100%; margin-bottom: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="logo">CartPrime</div>
-        <div class="nav-icons">
-            <a href="index.html" class="nav-item">
-                <i class="fa-solid fa-house"></i>
-                <span>Home</span>
-            </a>
-            <a href="Orders.html" class="nav-item">
-                <i class="fa-solid fa-bag-shopping"></i>
-                <span>My Orders</span>
-            </a>
-            <div class="nav-item" onclick="toggleProfileMenu()">
-                <i class="fa-solid fa-user"></i>
-                <span>Profile</span>
-                <div class="profile-dropdown" id="profileMenu">
-                    <div class="user-info-brief">
-                        <img id="headerProfilePic" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-                        <div>
-                            <p id="headerUserName" style="font-weight: bold; font-size: 14px;">User Name</p>
-                            <p id="userPhoneDisplay" style="font-size: 12px; color: #777;">+91 0000000000</p>
-                        </div>
-                    </div>
-                    <button class="menu-link" onclick="window.location.reload()"><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
-                    <button class="menu-link logout-btn" onclick="logout()" style="color: #dc3545;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-                </div>
-            </div>
-        </div>
+        <a href="index.html" class="logo">Cart<span>Prime</span></a>
+        <a href="index.html" style="color: var(--dark); text-decoration: none; font-weight: 600; font-size: 14px;">Home</a>
     </nav>
 
     <div class="profile-container">
+        <!-- Profile Info Card -->
         <div class="card">
             <div class="image-upload-wrapper">
                 <img id="mainProfileImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
@@ -96,29 +67,55 @@
                 <input type="file" id="fileInput" accept="image/*">
             </div>
             <div style="text-align: center;">
-                <h3 id="displayFullName">Loading...</h3>
-                <button onclick="editName()" style="background: none; border: none; color: #ff9900; font-size: 13px; cursor: pointer; font-weight: 600;">Edit Name</button>
+                <h3 id="displayFullName" style="color: var(--dark); font-weight: 700;">Loading...</h3>
+                <p id="userPhoneDisplay" style="font-size: 13px; color: #888; margin-bottom: 10px;">+91 0000000000</p>
+                <button onclick="editName()" style="background: #f0f0f0; border: none; padding: 5px 15px; border-radius: 20px; font-size: 12px; cursor: pointer;">Edit Name</button>
             </div>
         </div>
 
+        <!-- Phone Number Card -->
         <div class="card">
-            <h2><i class="fa-solid fa-location-dot" style="color: #ff9900;"></i> Delivery Address</h2>
-            <div class="address-box">
-                <div class="address-header">
-                    <span class="tag">DEFAULT ADDRESS</span>
-                    <button class="edit-btn" onclick="updateAddress()">EDIT</button>
+            <h2 style="font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-phone" style="color: var(--primary);"></i> Contact Details
+            </h2>
+            <div class="info-box">
+                <div class="box-header">
+                    <span class="tag" style="background: #e1f7e1; color: #28a745;">PRIMARY NUMBER</span>
                 </div>
-                <div id="addressDisplayArea" class="address-details">
-                    <p id="displayAddrName" style="font-weight: bold; color: #333;"></p>
-                    <p id="displayStreet" style="font-size: 14px; color: #555;"></p>
-                    <p id="displayLandmark" style="font-size: 14px; color: #555;"></p>
-                    <p id="displayCityPin" style="font-size: 14px; color: #555;"></p>
-                    <p id="displayPhone" style="font-size: 14px; color: #333; font-weight: bold; margin-top: 8px;"></p>
+                <div class="detail-row">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <div class="detail-text" id="phoneDisplayBox" style="font-size: 16px; font-weight: 700; letter-spacing: 1px; color: #333;">
+                        +91 0000000000
+                    </div>
                 </div>
-                <p id="noAddressMsg" style="display:none; font-size: 14px; color: #999;">No address saved. Click EDIT to add.</p>
+                <button class="edit-btn-main" onclick="updatePhone()" style="background: #f8f9fa; color: #333; border: 1px solid #ddd;">CHANGE PHONE</button>
             </div>
-            <p style="font-size: 11px; color: #888; margin-top: 10px; text-align: center;">* This address will be used for all your orders.</p>
         </div>
+
+        <!-- Address Card -->
+        <div class="card">
+            <h2 style="font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Delivery Address
+            </h2>
+            <div class="info-box">
+                <div class="box-header">
+                    <span class="tag">HOME / DEFAULT</span>
+                </div>
+                <div id="addressFullView">
+                    <div class="detail-row">
+                        <i class="fa-solid fa-house-user"></i>
+                        <div class="detail-text" id="addrLine1">No address saved yet.</div>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fa-solid fa-city"></i>
+                        <div class="detail-text" id="addrLine2">Please update your location.</div>
+                    </div>
+                </div>
+                <button class="edit-btn-main" onclick="updateAddress()">UPDATE ADDRESS</button>
+            </div>
+        </div>
+
+        <button onclick="logout()" style="width: 100%; padding: 15px; background: none; border: 2px solid #eee; color: #dc3545; border-radius: 15px; font-weight: 700; cursor: pointer; margin-bottom: 50px;">LOGOUT ACCOUNT</button>
     </div>
 
     <script type="module">
@@ -140,91 +137,91 @@
 
         if (!userMob) { window.location.href = 'login.html'; }
 
-        window.toggleProfileMenu = () => { document.getElementById('profileMenu').classList.toggle('active'); };
-
         // Fetch User Data
         onValue(ref(db, 'users/' + userMob), (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                document.getElementById('headerUserName').innerText = data.name || "User";
-                document.getElementById('displayFullName').innerText = data.name || "Set Name";
-                document.getElementById('displayAddrName').innerText = data.name || "";
-                document.getElementById('userPhoneDisplay').innerText = "+91 " + userMob;
+                document.getElementById('displayFullName').innerText = data.name || "User Name";
+                document.getElementById('userPhoneDisplay').innerText = "+91 " + (data.phone || userMob);
+                document.getElementById('phoneDisplayBox').innerText = "+91 " + (data.phone || userMob);
                 
-                if (data.profilePic) {
-                    document.getElementById('headerProfilePic').src = data.profilePic;
-                    document.getElementById('mainProfileImg').src = data.profilePic;
-                }
+                if (data.profilePic) document.getElementById('mainProfileImg').src = data.profilePic;
 
-                // Show Address Details
-                const displayArea = document.getElementById('addressDisplayArea');
-                const noMsg = document.getElementById('noAddressMsg');
-
-                if (data.address) {
-                    displayArea.style.display = 'block';
-                    noMsg.style.display = 'none';
-                    document.getElementById('displayStreet').innerText = data.address.street || "";
-                    document.getElementById('displayLandmark').innerText = "Landmark: " + (data.address.landmark || "");
-                    document.getElementById('displayCityPin').innerText = (data.address.city || "") + " - " + (data.address.pincode || "");
-                    document.getElementById('displayPhone').innerText = "📞 " + (data.address.contact || userMob);
-                } else {
-                    displayArea.style.display = 'none';
-                    noMsg.style.display = 'block';
+                const a1 = document.getElementById('addrLine1');
+                const a2 = document.getElementById('addrLine2');
+                
+                if (data.fullAddress) {
+                    const addr = data.fullAddress;
+                    a1.innerHTML = `<b>${addr.street}</b><br><small>${addr.landmark || ''}</small>`;
+                    a2.innerText = `${addr.city}, ${addr.pincode}`;
+                } else if (data.address) {
+                    a1.innerText = data.address;
+                    a2.innerText = "";
                 }
             }
         });
 
-        // Edit Name
+        // Update Phone Number
+        window.updatePhone = () => {
+            Swal.fire({
+                title: 'Update Mobile Number',
+                input: 'tel',
+                inputLabel: 'Enter 10 digit number',
+                inputValue: userMob,
+                showCancelButton: true,
+                confirmButtonColor: '#ff9900'
+            }).then(res => {
+                if(res.value && res.value.length === 10) {
+                    update(ref(db, 'users/' + userMob), { phone: res.value })
+                    .then(() => Swal.fire('Updated', 'Phone number changed successfully', 'success'));
+                } else if(res.value) {
+                    Swal.fire('Error', 'Please enter a valid 10-digit number', 'error');
+                }
+            });
+        };
+
+        // Update Address
+        window.updateAddress = async () => {
+            const { value: formValues } = await Swal.fire({
+                title: 'Delivery Address',
+                html:
+                    '<input id="swal-street" class="swal-input-custom" placeholder="House No / Street / Area">' +
+                    '<input id="swal-landmark" class="swal-input-custom" placeholder="Landmark (Optional)">' +
+                    '<input id="swal-city" class="swal-input-custom" placeholder="City">' +
+                    '<input id="swal-pin" type="number" class="swal-input-custom" placeholder="PIN Code">',
+                focusConfirm: false,
+                confirmButtonColor: '#ff9900',
+                preConfirm: () => {
+                    const street = document.getElementById('swal-street').value;
+                    const city = document.getElementById('swal-city').value;
+                    const pin = document.getElementById('swal-pin').value;
+                    if(!street || !city || !pin) return Swal.showValidationMessage('Fill required fields');
+                    return {
+                        street: street,
+                        landmark: document.getElementById('swal-landmark').value,
+                        city: city,
+                        pincode: pin
+                    }
+                }
+            });
+
+            if (formValues) {
+                update(ref(db, 'users/' + userMob), { fullAddress: formValues })
+                .then(() => Swal.fire('Success', 'Address updated!', 'success'));
+            }
+        };
+
         window.editName = () => {
             Swal.fire({
-                title: 'Update Name',
+                title: 'Your Name',
                 input: 'text',
                 inputValue: document.getElementById('displayFullName').innerText,
-                showCancelButton: true,
                 confirmButtonColor: '#ff9900'
             }).then(res => {
                 if(res.value) update(ref(db, 'users/' + userMob), { name: res.value });
             });
         };
 
-        // Edit/Update Address (Split Fields)
-        window.updateAddress = async () => {
-            const { value: formValues } = await Swal.fire({
-                title: 'Update Delivery Address',
-                html:
-                    `<input id="swal-street" class="swal2-input" placeholder="House Name / Street" style="font-size:14px">` +
-                    `<input id="swal-landmark" class="swal2-input" placeholder="Landmark" style="font-size:14px">` +
-                    `<div style="display:flex; gap:10px; width:100%; padding:0 1.1em">
-                        <input id="swal-city" class="swal2-input" placeholder="City" style="flex:1; margin:10px 0; font-size:14px">
-                        <input id="swal-pincode" type="number" class="swal2-input" placeholder="Pincode" style="flex:1; margin:10px 0; font-size:14px">
-                    </div>` +
-                    `<input id="swal-contact" type="tel" class="swal2-input" placeholder="Alternative Contact Number" style="font-size:14px">`,
-                focusConfirm: false,
-                showCancelButton: true,
-                confirmButtonText: 'Save Address',
-                confirmButtonColor: '#ff9900',
-                preConfirm: () => {
-                    const street = document.getElementById('swal-street').value.trim();
-                    const landmark = document.getElementById('swal-landmark').value.trim();
-                    const city = document.getElementById('swal-city').value.trim();
-                    const pincode = document.getElementById('swal-pincode').value.trim();
-                    const contact = document.getElementById('swal-contact').value.trim();
-
-                    if (!street || !city || !pincode || !contact) {
-                        Swal.showValidationMessage('Please fill all mandatory fields');
-                        return false;
-                    }
-                    return { street, landmark, city, pincode, contact };
-                }
-            });
-
-            if (formValues) {
-                update(ref(db, 'users/' + userMob + '/address'), formValues)
-                .then(() => Swal.fire('Success', 'Address updated successfully!', 'success'));
-            }
-        };
-
-        // Profile Pic Update
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
@@ -235,10 +232,7 @@
             reader.readAsDataURL(file);
         });
 
-        window.logout = () => {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        };
+        window.logout = () => { localStorage.clear(); window.location.href = 'index.html'; };
     </script>
 </body>
 </html>
