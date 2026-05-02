@@ -9,45 +9,75 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #f0f2f5; display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; height: 100vh; background: #1a1a2e; color: white; padding: 25px; position: fixed; }
-        .sidebar h2 { color: #ff9900; margin-bottom: 40px; text-align: center; font-size: 22px; }
-        .sidebar button { width: 100%; padding: 14px; background: transparent; border: none; color: #a2a2c2; text-align: left; cursor: pointer; font-size: 15px; border-radius: 8px; margin-bottom: 8px; transition: 0.3s; }
+        
+        /* Sidebar Styles */
+        .sidebar { width: 260px; height: 100vh; background: #1a1a2e; color: white; padding: 25px; position: fixed; transition: 0.3s; z-index: 1000; }
+        .sidebar h2 { color: #ff9900; margin-bottom: 40px; text-align: center; font-size: 22px; overflow: hidden; white-space: nowrap; }
+        .sidebar button { width: 100%; padding: 14px; background: transparent; border: none; color: #a2a2c2; text-align: left; cursor: pointer; font-size: 15px; border-radius: 8px; margin-bottom: 8px; transition: 0.3s; display: flex; align-items: center; }
+        .sidebar button i { min-width: 25px; font-size: 18px; }
         .sidebar button:hover, .sidebar button.active { background: #ff9900; color: #1a1a2e; font-weight: bold; }
-        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
-        .tab-content { display: none; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        
+        /* Main Content */
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); transition: 0.3s; }
+        .tab-content { display: none; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow-x: auto; }
         .active-tab { display: block !important; }
+        
         input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1.5px solid #eee; }
         .img-input-container { display: flex; gap: 8px; margin-bottom: 8px; }
         .remove-btn { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
         .display-options { display: flex; gap: 20px; margin: 15px 0; background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 600px; }
         th { background: #f8f9fa; color: #555; padding: 15px; text-align: left; font-size: 13px; border-bottom: 2px solid #eee; }
         td { padding: 15px; border-bottom: 1px solid #f1f1f1; font-size: 14px; vertical-align: top; }
+        
         .badge { padding: 3px 7px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; margin-right: 3px; }
         .user-addr-box { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 8px; border-left: 4px solid #ff9900; line-height: 1.5; margin-top: 5px; }
         .reason-text { font-size: 11px; color: #e74c3c; font-style: italic; display: block; margin-top: 4px; }
-        .action-btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; color: white; font-weight: 600; margin-right: 4px; }
-        .custom-swal-select { border-radius: 8px !important; padding: 10px !important; width: 400px; font-size: 14px !important; border: 1px solid #ddd !important; }
-        .custom-swal-popup { border-radius: 15px !important; padding: 20px !important;  }
+        .action-btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; color: white; font-weight: 600; margin-right: 4px; margin-bottom: 4px; }
+
+        /* Responsive Design Queries */
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; padding: 20px 10px; }
+            .sidebar h2 { display: none; }
+            .sidebar button span { display: none; }
+            .sidebar button { justify-content: center; padding: 15px 0; }
+            .sidebar button i { margin: 0; font-size: 20px; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); padding: 20px; }
+            .tab-content { padding: 15px; }
+            .display-options { flex-direction: column; gap: 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .main-content { padding: 10px; }
+            h2 { font-size: 1.2rem; }
+            .action-btn { padding: 6px 10px; font-size: 10px; }
+        }
+
+        .custom-swal-select { border-radius: 8px !important; padding: 10px !important; width: 100% !important; max-width: 400px; font-size: 14px !important; border: 1px solid #ddd !important; }
+        .custom-swal-popup { border-radius: 15px !important; padding: 20px !important; width: 90% !important; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h2>CartPrime Admin</h2>
-    <button onclick="openTab('orders')" class="tablinks active"><i class="fa fa-shopping-cart"></i> &nbsp;Orders</button>
-    <button onclick="openTab('addProduct')" class="tablinks"><i class="fa fa-plus-circle"></i> &nbsp;Add Product</button>
-    <button onclick="openTab('manageProducts')" class="tablinks"><i class="fa fa-boxes"></i> &nbsp;Inventory</button>
-    <button onclick="openTab('users')" class="tablinks"><i class="fa fa-users"></i> &nbsp;Users List</button>
+    <h2>CartPrime</h2>
+    <button onclick="openTab('orders')" class="tablinks active"><i class="fa fa-shopping-cart"></i> <span>&nbsp;Orders</span></button>
+    <button onclick="openTab('addProduct')" class="tablinks"><i class="fa fa-plus-circle"></i> <span>&nbsp;Add Product</span></button>
+    <button onclick="openTab('manageProducts')" class="tablinks"><i class="fa fa-boxes"></i> <span>&nbsp;Inventory</span></button>
+    <button onclick="openTab('users')" class="tablinks"><i class="fa fa-users"></i> <span>&nbsp;Users List</span></button>
 </div>
 
 <div class="main-content">
     <div id="orders" class="tab-content active-tab">
         <h2>Order Management</h2>
-        <table>
-            <thead><tr><th>Customer</th><th>Product</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="orderList"></tbody>
-        </table>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead><tr><th>Customer</th><th>Product</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="orderList"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="addProduct" class="tab-content">
@@ -82,18 +112,22 @@
 
     <div id="manageProducts" class="tab-content">
         <h2>Inventory</h2>
-        <table>
-            <thead><tr><th>Img</th><th>Name</th><th>Display</th><th>Action</th></tr></thead>
-            <tbody id="manageProductList"></tbody>
-        </table>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead><tr><th>Img</th><th>Name</th><th>Display</th><th>Action</th></tr></thead>
+                <tbody id="manageProductList"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="users" class="tab-content">
         <h2>Users & Live Addresses</h2>
-        <table>
-            <thead><tr><th>User</th><th>Contact</th><th>Current Address</th></tr></thead>
-            <tbody id="userList"></tbody>
-        </table>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead><tr><th>User</th><th>Contact</th><th>Current Address</th></tr></thead>
+                <tbody id="userList"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -117,7 +151,10 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
         document.querySelectorAll('.tablinks').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active-tab');
-        event.currentTarget.classList.add('active');
+        
+        // Handle active class for clicked button
+        const clickedBtn = Array.from(document.querySelectorAll('.tablinks')).find(btn => btn.getAttribute('onclick').includes(tabId));
+        if(clickedBtn) clickedBtn.classList.add('active');
     };
 
     window.addImageField = () => {
@@ -185,15 +222,12 @@
         if (v) update(ref(db, 'products/' + id), v);
     };
 
-    // --- UPDATED ORDER LIST LOGIC WITH IMAGE FIX ---
     onValue(ref(db, 'orders'), snap => {
         const list = document.getElementById('orderList');
         list.innerHTML = "";
         snap.forEach(c => {
             const o = c.val();
             const isRej = o.status === 'Rejected';
-
-            // Find image using multiple keys
             const productImage = o.checkout_img || o.productImg || o.image || o.img || 'https://via.placeholder.com/40';
             const productName = o.checkout_name || o.productName || o.product || "Product Name Not Found";
             const productPrice = o.checkout_price || o.productPrice || o.price || "0";
@@ -228,13 +262,12 @@
             title: 'Reject Order?',
             text: "Select a reason for cancellation",
             icon: 'warning',
-            width:'500px',
             input: 'select',
             inputOptions: {
                 'Out of Stock': '📦 Out of Stock',
                 'Delivery Issue': '🚚 Delivery Issue',
                 'Invalid Details': '❌ Invalid Details',
-                'Payment Issue' : '💳 Payment is fake or no Proof Is Upload',
+                'Payment Issue' : '💳 Payment Issue',
                 'Other': '📝 Other Reason'
             },
             inputPlaceholder: 'Choose Reason',
