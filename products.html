@@ -52,7 +52,11 @@
         .price { color: var(--dark); font-size: 20px; font-weight: 800; margin-bottom: 15px; display: block; }
         
         /* Badge & Buttons */
-        .oos-badge { position: absolute; top: 15px; right: 15px; background: var(--danger); color: white; padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; z-index: 10; }
+        .oos-badge { 
+            position: absolute; top: 15px; right: 15px; 
+            background: var(--danger); color: white; padding: 4px 10px; 
+            border-radius: 5px; font-size: 11px; font-weight: bold; z-index: 10; 
+        }
         .btn { 
             background: var(--dark); color: white; border: none; 
             width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; 
@@ -61,6 +65,7 @@
         .btn:hover:not(:disabled) { background: var(--primary); color: var(--dark); }
         .btn:disabled { background: #cbd5e0; cursor: not-allowed; color: #718096; }
 
+        /* Out of Stock visual effect */
         .card.oos { opacity: 0.8; }
         .card.oos img { filter: grayscale(80%); }
 
@@ -85,7 +90,6 @@
     <div class="container">
         <h2 class="section-title">Explore All Products</h2>
         <div class="grid" id="allProductGrid">
-            <!-- Loading skeleton or text -->
             <p style="grid-column: 1/-1; text-align: center; padding: 50px; color: #888;">Loading our collection...</p>
         </div>
     </div>
@@ -117,12 +121,14 @@
                 Object.keys(data).forEach(key => {
                     const item = data[key];
                     
-                    // --- logic: Admin-il showOnAll select cheythath maathram kaanikuka ---
+                    // Admin-ിൽ 'Show on All Products' ടിക്ക് ചെയ്തവ മാത്രം കാണിക്കും
                     if (item.showOnAll === true) {
                         hasProducts = true;
-                        const isOutOfStock = item.inStock === false;
 
-                        // Image Source Fix (Handles array and string)
+                        // Admin Inventory-ലെ Out Stock ബട്ടൺ ലോജിക്
+                        const isOutOfStock = item.outOfStock === true;
+
+                        // Image Source Handling
                         let imageSource = 'https://via.placeholder.com/200';
                         if (Array.isArray(item.images) && item.images.length > 0) {
                             imageSource = item.images[0];
@@ -143,7 +149,7 @@
                                     <span class="price">₹${item.price}</span>
                                     <button class="btn" 
                                         ${isOutOfStock ? 'disabled' : `onclick="goToDetails('${key}')"`}>
-                                        ${isOutOfStock ? 'Unavailable' : 'View Product'}
+                                        ${isOutOfStock ? 'Out of Stock' : 'View Product'}
                                     </button>
                                 </div>
                             </div>`;
