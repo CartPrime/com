@@ -73,14 +73,14 @@
             </div>
         </div>
 
-        <!-- Phone Number Card -->
+        <!-- Phone Number Card (Locked) -->
         <div class="card">
             <h2 style="font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-phone" style="color: var(--primary);"></i> Contact Details
             </h2>
-            <div class="info-box">
+            <div class="info-box" style="border-left: 4px solid var(--primary);">
                 <div class="box-header">
-                    <span class="tag" style="background: #e1f7e1; color: #28a745;">PRIMARY NUMBER</span>
+                    <span class="tag" style="background: #e1f7e1; color: #28a745;">REGISTERED NUMBER</span>
                 </div>
                 <div class="detail-row">
                     <i class="fa-solid fa-mobile-screen-button"></i>
@@ -88,7 +88,7 @@
                         +91 0000000000
                     </div>
                 </div>
-                <button class="edit-btn-main" onclick="updatePhone()" style="background: #f8f9fa; color: #333; border: 1px solid #ddd;">CHANGE PHONE</button>
+                <p style="font-size: 10px; color: #999; margin-top: 10px;">* Mobile number cannot be changed once registered.</p>
             </div>
         </div>
 
@@ -142,8 +142,8 @@
             const data = snapshot.val();
             if (data) {
                 document.getElementById('displayFullName').innerText = data.name || "User Name";
-                document.getElementById('userPhoneDisplay').innerText = "+91 " + (data.phone || userMob);
-                document.getElementById('phoneDisplayBox').innerText = "+91 " + (data.phone || userMob);
+                document.getElementById('userPhoneDisplay').innerText = "+91 " + userMob;
+                document.getElementById('phoneDisplayBox').innerText = "+91 " + userMob;
                 
                 if (data.profilePic) document.getElementById('mainProfileImg').src = data.profilePic;
 
@@ -160,25 +160,6 @@
                 }
             }
         });
-
-        // Update Phone Number
-        window.updatePhone = () => {
-            Swal.fire({
-                title: 'Update Mobile Number',
-                input: 'tel',
-                inputLabel: 'Enter 10 digit number',
-                inputValue: userMob,
-                showCancelButton: true,
-                confirmButtonColor: '#ff9900'
-            }).then(res => {
-                if(res.value && res.value.length === 10) {
-                    update(ref(db, 'users/' + userMob), { phone: res.value })
-                    .then(() => Swal.fire('Updated', 'Phone number changed successfully', 'success'));
-                } else if(res.value) {
-                    Swal.fire('Error', 'Please enter a valid 10-digit number', 'error');
-                }
-            });
-        };
 
         // Update Address
         window.updateAddress = async () => {
