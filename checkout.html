@@ -31,7 +31,6 @@
 <div class="container">
     <h2><i class="fas fa-shield-alt"></i> Checkout</h2>
 
-    <!-- Product Summary -->
     <div class="order-box">
         <img id="pImg" src="https://via.placeholder.com/70" alt="Product">
         <div class="order-info">
@@ -40,7 +39,6 @@
         </div>
     </div>
 
-    <!-- Customer Details -->
     <div class="form-group">
         <label>Delivery Name</label>
         <input type="text" id="custName" placeholder="Full name of receiver">
@@ -82,26 +80,53 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ലോഡിംഗ് സ്പീഡ് കൂട്ടാൻ നേരിട്ട് ലോക്കൽ സ്റ്റോറേജ് ഉപയോഗിക്കുന്നു
+    // OneSignal Notification Function
+    async function sendAdminNotification(orderName, amount) {
+        const appId = "12215d52-ff48-476d-8f20-08396274d66e"; 
+        const restApiKey = "os_v2_app_ciqv2ux7jbdw3dzaba4we5gwny4p5ogkbtpu5nug2fv6aspdinnvtg4daxzki3a7wlm6krmps5htntsfbfctu2lnx7isncusfmyzakq"; 
+
+        const headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": "Basic " + restApiKey
+        };
+
+        const data = {
+            app_id: appId,
+            included_segments: ["All"],
+            headings: { "en": "New Order Received! 🛍️" },
+            contents: { "en": `New order for ${orderName} of ₹${amount}` },
+            android_accent_color: "FF9900",
+            priority: 10
+        };
+
+        try {
+            await fetch("https://onesignal.com/api/v1/notifications", {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(data)
+            });
+        } catch (error) {
+            console.error("Notification Error:", error);
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
         const img = localStorage.getItem('checkout_img');
         const userMob = localStorage.getItem('userMob');
-        const userName = localStorage.getItem('userName'); // ലോഗിൻ സമയത്ത് സേവ് ചെയ്ത പേര്
+        const userName = localStorage.getItem('userName');
 
         if(!name || !userMob) {
             Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
             return;
         }
 
-        // വിവരങ്ങൾ വേഗത്തിൽ ഡിസ്‌പ്ലേ ചെയ്യുന്നു
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
         
-        // യൂസറുടെ പേര് നേരത്തെ ഉണ്ടെങ്കിൽ അത് ഓട്ടോമാറ്റിക്കായി ഫിൽ ചെയ്യുന്നു
         if(userName) {
             document.getElementById('custName').value = userName;
         }
@@ -114,7 +139,7 @@
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
 
         if(!name || !addr) {
-            return Swal.fire("Empty Fields", "Name, Address എന്നിവ നൽകുക.", "warning");
+            return Swal.fire("Empty Fields", "Name, Address type", "warning");
         }
 
         const myUpiId = "9778722796@fam"; 
@@ -150,7 +175,7 @@
     function checkFinalConfirmation(name, addr, mob, amount) {
         Swal.fire({
             title: 'Payment Status',
-            text: "നിങ്ങൾ പെയ്മെന്റ് പൂർത്തിയാക്കിയോ?",
+            text: "Your Order Confimed",
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Place Order',
@@ -161,11 +186,12 @@
     }
 
     function saveOrder(name, addr, mob, amount) {
-        // ഡാറ്റ അയക്കുമ്പോൾ ഒരു ലൂഡിംഗ് കാണിക്കുന്നത് നല്ലതാണ്
         Swal.showLoading();
 
+        const pName = document.getElementById('pName').innerText;
+
         const orderData = {
-            checkout_name: document.getElementById('pName').innerText,
+            checkout_name: pName,
             checkout_price: amount,
             checkout_img: document.getElementById('pImg').src,
             userName: name,
@@ -180,6 +206,9 @@
         const newOrderRef = push(ordersRef);
         
         set(newOrderRef, orderData).then(() => {
+            // OneSignal Notification Call
+            sendAdminNotification(pName, amount);
+
             Swal.fire({
                 title: "Order Placed!",
                 text: "Order placed successfully! Your order will be shipped after verification.",
@@ -188,7 +217,7 @@
                 window.location.href = "orders.html";
             });
         }).catch((err) => {
-            Swal.fire("Error", "Order സേവ് ചെയ്യാൻ പറ്റിയില്ല. ഒന്നുകൂടി നോക്കൂ.", "error");
+            Swal.fire("Error", "Order Not Save Try agin", "error");
         });
     }
 </script>
