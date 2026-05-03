@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -54,10 +54,7 @@
         .hero-content { flex: 1; }
         .hero-content h1 { font-size: 32px; color: #ff9900; margin-bottom: 10px; line-height: 1.2; }
         .hero-content p { font-size: 18px; opacity: 0.9; margin-bottom: 15px; }
-        .hero-image { flex: 1; text-align: right; }
-        .hero-image img { height: 220px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3)); transition: 0.5s; }
-        .hero-banner:hover .hero-image img { transform: scale(1.05) rotate(-5deg); }
-
+        
         /* Product Grid */
         .container { padding: 30px 5%; }
         .product-grid { 
@@ -72,40 +69,20 @@
             display: flex; flex-direction: column; justify-content: space-between;
         }
         .product-card:hover { transform: translateY(-5px); }
-        .product-card img { width: 100%; height: 150px; object-fit: contain; margin-bottom: 10px; }
+        .product-card img { width: 100%; height: 150px; object-fit: contain; margin-bottom: 10px; transition: 0.3s; }
         .product-card h3 { font-size: 15px; color: #333; margin-bottom: 5px; height: 40px; overflow: hidden; }
         .product-card p { color: #28a745; font-weight: bold; font-size: 17px; margin-bottom: 10px; }
         .buy-btn { background: #ff9900; color: #1a1a2e; border: none; padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; }
-        .out-of-stock-btn { background: #ccc; color: #666; border: none; padding: 8px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; font-size: 14px; }
-
-        /* RESPONSIVE DESIGN */
-        @media (max-width: 992px) {
-            .hero-banner { padding: 30px; }
-            .hero-content h1 { font-size: 28px; }
-        }
+        
+        /* Out of Stock Styles */
+        .out-of-stock-btn { background: #cbd5e0; color: #718096; border: none; padding: 8px; border-radius: 6px; cursor: not-allowed; width: 100%; font-weight: bold; font-size: 14px; }
+        .product-card.oos-card { opacity: 0.7; }
+        .product-card.oos-card img { filter: grayscale(100%); }
 
         @media (max-width: 768px) {
             nav { padding: 10px 3%; }
-            .logo { font-size: 20px; }
-            .nav-links { gap: 10px; }
-            .nav-links a { font-size: 12px; }
-            
             .hero-banner { flex-direction: column; text-align: center; padding: 30px 20px; width: 95%; }
-            .hero-image { text-align: center; margin-top: 20px; }
-            .hero-image img { height: 160px; }
-            .hero-content h1 { font-size: 24px; }
-            
             .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-            .container { padding: 20px 3%; }
-        }
-
-        @media (max-width: 480px) {
-            .nav-links #ordersBtn, .nav-links #adminBtn { padding: 5px 8px; font-size: 11px; }
-            .product-grid { grid-template-columns: 1fr 1fr; gap: 10px; } /* Two products per row on mobile */
-            .product-card { padding: 10px; }
-            .product-card h3 { font-size: 14px; }
-            .hero-content h1 { font-size: 20px; }
-            .hero-content p { font-size: 14px; }
         }
     </style>
 </head>
@@ -131,7 +108,6 @@
             <p>Get up to <b>50% OFF</b> on your first order.</p>
             <button class="buy-btn" style="width: 130px;" onclick="location.href='products.html'">Shop Now</button>
         </div>
-        
     </div>
     
     <div class="container">
@@ -142,7 +118,6 @@
     </div>
 
     <script type="module">
-        // [Firebase setup and JS logic remain exactly the same as your original code]
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -189,10 +164,6 @@
                         document.getElementById('navProfilePic').src = userData.profilePic;
                     }
                 });
-            } else {
-                loginLink.style.display = 'inline-block';
-                profileIcon.style.display = 'none';
-                ordersBtn.style.display = 'none';
             }
         });
 
@@ -201,27 +172,30 @@
             productGrid.innerHTML = '';
             const data = snapshot.val();
             if (data) {
-                Object.values(data).forEach(item => {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
                     if (item.showOnHome === true) { 
                         let firstImg = "";
-                        if(Array.isArray(item.images)) {
+                        if(Array.isArray(item.images) && item.images.length > 0) {
                             firstImg = item.images[0];
                         } else {
-                            firstImg = (item.img || item.image || "").split(',')[0].trim();
+                            firstImg = (item.img || item.image || "https://via.placeholder.com/150").split(',')[0].trim();
                         }
 
                         const safeName = item.name.replace(/'/g, "\\'");
                         const safeDesc = (item.desc || "").replace(/'/g, "\\'");
                         const safeReturn = (item.returnPolicy || "7 Days").replace(/'/g, "\\'");
-                        const isAvailable = item.inStock !== false;
+                        
+                        // Admin Inventory ലോജിക്കുമായുള്ള സിങ്കിംഗ്
+                        const isOutOfStock = item.outOfStock === true;
 
-                        const actionButton = isAvailable 
-                            ? `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`
-                            : `<button class="out-of-stock-btn" disabled>Out of Stock</button>`;
+                        const actionButton = isOutOfStock 
+                            ? `<button class="out-of-stock-btn" disabled>Out of Stock</button>`
+                            : `<button class="buy-btn" onclick="goToCheckout('${safeName}', '${item.price}', '${firstImg}')">Buy Now</button>`;
 
                         productGrid.innerHTML += `
-                            <div class="product-card" style="opacity: ${isAvailable ? '1' : '0.8'}">
-                                <img src="${firstImg}" onclick="viewProduct('${safeName}', '${item.price}', '${item.images ? item.images.join(',') : item.img}', '${safeDesc}', '${safeReturn}')">
+                            <div class="product-card ${isOutOfStock ? 'oos-card' : ''}">
+                                <img src="${firstImg}" onclick="viewProduct('${key}', '${safeName}', '${item.price}', '${item.images ? item.images.join(',') : item.img}', '${safeDesc}', '${safeReturn}')">
                                 <h3>${item.name}</h3>
                                 <p>₹${item.price}</p>
                                 ${actionButton}
@@ -238,7 +212,8 @@
             }
         });
 
-        window.viewProduct = (name, price, img, desc, returnPolicy) => {
+        window.viewProduct = (id, name, price, img, desc, returnPolicy) => {
+            localStorage.setItem('viewProdId', id);
             localStorage.setItem('viewProdName', name);
             localStorage.setItem('viewProdPrice', price);
             localStorage.setItem('viewProdDesc', desc);
