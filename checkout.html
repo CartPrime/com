@@ -70,7 +70,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
@@ -84,6 +84,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Email അയക്കാനുള്ള ഫംഗ്ഷൻ
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -106,6 +107,7 @@
             });
     }
 
+    // പേജ് ലോഡ് ആകുമ്പോൾ പ്രൊഡക്റ്റും അഡ്രസ്സും സെറ്റ് ചെയ്യുക
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
@@ -118,6 +120,7 @@
             return;
         }
 
+        // Product UI അപ്‌ഡേറ്റ്
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
@@ -126,6 +129,24 @@
         if(userName) {
             document.getElementById('custName').value = userName;
         }
+
+        // --- പ്രൊഫൈലിൽ നിന്ന് ഓട്ടോമാറ്റിക് ആയി അഡ്രസ് എടുക്കുന്നു ---
+        const userRef = ref(db, 'users/' + userMob);
+        onValue(userRef, (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+                // പ്രൊഫൈലിൽ അഡ്രസ് സേവ് ചെയ്തിട്ടുണ്ടെങ്കിൽ അത് ഇവിടെ കാണിക്കും
+                if (userData.address) {
+                    document.getElementById('custAddr').value = userData.address;
+                }
+                // പേര് ഡാറ്റാബേസിൽ ഉണ്ടെങ്കിൽ അത് എടുക്കും
+                if (userData.name) {
+                    document.getElementById('custName').value = userData.name;
+                }
+            }
+        }, {
+            onlyOnce: true
+        });
     });
 
     window.handlePayment = () => {
@@ -184,8 +205,6 @@
     function saveOrder(name, addr, mob, amount) {
         Swal.showLoading();
         const pName = document.getElementById('pName').innerText;
-        
-        // ലോക്കൽ സ്റ്റോറേജിൽ നിന്ന് റിട്ടേൺ പോളിസി എടുക്കുന്നു
         const policy = localStorage.getItem('checkout_return_policy') || "Standard";
 
         const orderData = {
@@ -197,7 +216,7 @@
             address: addr,
             payment: "UPI (Pending Verification)",
             status: "Pending",
-            returnPolicy: policy, // ഇതാണ് പ്രധാനപ്പെട്ട മാറ്റം
+            returnPolicy: policy,
             orderDate: new Date().toLocaleString()
         };
 
