@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="5" placeholder="Address will load automatically..."></textarea>
+        <textarea id="custAddr" rows="5" placeholder="Loading address details..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -126,37 +126,35 @@
             if (snapshot.exists()) {
                 const userData = snapshot.val();
                 
-                // 1. പേര് സിങ്ക് ചെയ്യുന്നു
                 if (userData.name) {
                     document.getElementById('custName').value = userData.name;
                 }
 
-                // 2. മൊബൈൽ നമ്പർ സിങ്ക് ചെയ്യുന്നു
                 if (userData.phone) {
                     document.getElementById('custMob').value = userData.phone;
                 }
 
-                // 3. അഡ്രസ്സ് ഫോർമാറ്റിംഗ് (സ്ക്രീൻഷോട്ടിലെ പോലെ)
+                // അഡ്രസ്സ് ഫോർമാറ്റിംഗ്
                 let addrParts = [];
 
-                // Ellumparambil Kaipamgalam (street key)
+                // ക്രമീകരണം: 1. Street (Ellumparambil Kaipamgalam)
                 if (userData.street) {
                     addrParts.push(userData.street);
                 }
 
-                // fullAddress-നുള്ളിലെ വിവരങ്ങൾ
+                // 2. ബാക്കി വിവരങ്ങൾ (fullAddress-നുള്ളിൽ ഉള്ളവ)
                 if (userData.fullAddress) {
                     const fa = userData.fullAddress;
-                    // Chalingad Kozhithumb road Valiyapali (landmark അല്ലെങ്കിൽ area)
+                    // landmark അല്ലെങ്കിൽ area (Chalingad Kozhithumb road Valiyapali)
                     if (fa.landmark) addrParts.push(fa.landmark);
-                    if (fa.area) addrParts.push(fa.area); 
+                    else if (fa.area) addrParts.push(fa.area); 
                     
-                    // thrissur, 680681
+                    // city & pincode (thrissur, 680681)
                     if (fa.city) addrParts.push(fa.city);
                     if (fa.pincode) addrParts.push(fa.pincode);
                 }
 
-                // അഡ്രസ് ബോക്സിൽ വാല്യൂ സെറ്റ് ചെയ്യുന്നു
+                // ടെക്സ്റ്റ് ഏരിയയിൽ കാണിക്കുന്നു
                 if (addrParts.length > 0) {
                     document.getElementById('custAddr').value = addrParts.join(", ");
                 } else if (userData.address) {
@@ -186,7 +184,6 @@
                 <div style="text-align:center">
                     <p>Pay <b>₹${amount}</b> using any UPI App</p>
                     <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
-                    <p style="font-size:11px; color:#666;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
