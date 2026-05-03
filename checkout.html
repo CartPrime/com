@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="5" placeholder="Loading address details..."></textarea>
+        <textarea id="custAddr" rows="5" placeholder="Loading delivery address..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -72,6 +72,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
         authDomain: "yoush0pcart.firebaseapp.com",
@@ -84,7 +85,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Email Service
+    // Email logic
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -103,7 +104,6 @@
             .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
     }
 
-    // ലോഡിംഗ് ലോജിക്
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
@@ -120,41 +120,34 @@
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
 
-        // Firebase Real-time Data Sync
+        // Fetch User Data from Firebase
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
                 
-                if (userData.name) {
-                    document.getElementById('custName').value = userData.name;
-                }
+                if (userData.name) document.getElementById('custName').value = userData.name;
+                if (userData.phone) document.getElementById('custMob').value = userData.phone;
 
-                if (userData.phone) {
-                    document.getElementById('custMob').value = userData.phone;
-                }
-
-                // അഡ്രസ്സ് ഫോർമാറ്റിംഗ്
                 let addrParts = [];
 
-                // ക്രമീകരണം: 1. Street (Ellumparambil Kaipamgalam)
-                if (userData.street) {
-                    addrParts.push(userData.street);
-                }
-
-                // 2. ബാക്കി വിവരങ്ങൾ (fullAddress-നുള്ളിൽ ഉള്ളവ)
+                // Screenshot 171244.png പ്രകാരം street, landmark എന്നിവ fullAddress ഉള്ളിലാണ്
                 if (userData.fullAddress) {
                     const fa = userData.fullAddress;
-                    // landmark അല്ലെങ്കിൽ area (Chalingad Kozhithumb road Valiyapali)
+                    
+                    // 1. Street (Ellumparambil Kaipamgalam)
+                    if (fa.street) addrParts.push(fa.street);
+
+                    // 2. Landmark (Chalingad Kozhithumb road Valiyapali)
                     if (fa.landmark) addrParts.push(fa.landmark);
                     else if (fa.area) addrParts.push(fa.area); 
                     
-                    // city & pincode (thrissur, 680681)
+                    // 3. City & Pincode
                     if (fa.city) addrParts.push(fa.city);
                     if (fa.pincode) addrParts.push(fa.pincode);
                 }
 
-                // ടെക്സ്റ്റ് ഏരിയയിൽ കാണിക്കുന്നു
+                // ടെക്സ്റ്റ് ഏരിയയിലേക്ക് മാറ്റുന്നു
                 if (addrParts.length > 0) {
                     document.getElementById('custAddr').value = addrParts.join(", ");
                 } else if (userData.address) {
