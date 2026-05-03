@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="3" placeholder="Home No, Street, Landmark, City, Pincode..."></textarea>
+        <textarea id="custAddr" rows="3" placeholder="Street, Landmark, City, Pincode..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -108,7 +108,7 @@
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
         const img = localStorage.getItem('checkout_img');
-        const userMob = localStorage.getItem('userMob'); // ലോഗിൻ ചെയ്യാൻ ഉപയോഗിച്ച നമ്പർ
+        const userMob = localStorage.getItem('userMob');
 
         if(!name || !userMob) {
             Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
@@ -126,7 +126,7 @@
         onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // 1. പേര് നൽകുന്നു
+                // 1. പേര് സിങ്ക് ചെയ്യുന്നു
                 if (userData.name) {
                     document.getElementById('custName').value = userData.name;
                 }
@@ -136,28 +136,25 @@
                     document.getElementById('custMob').value = userData.phone;
                 }
 
-                // 3. അഡ്രസ്സ് ലോജിക് (Street + Landmark + City + Pincode)
-                let finalAddress = "";
-
-                // സ്ട്രീറ്റ് അല്ലെങ്കിൽ ഹോം നമ്പർ (Screenshot പ്രകാരം ഇത് പുറത്താണ്)
+                // 3. സ്ട്രീറ്റ് ഉൾപ്പെടെയുള്ള അഡ്രസ്സ് ഫോർമാറ്റ് ചെയ്യുന്നു
+                let fullAddrText = "";
+                
+                // Screenshot 162331.png പ്രകാരം street കീ വെളിയിലാണ്
                 if (userData.street) {
-                    finalAddress += userData.street + ", ";
+                    fullAddrText += userData.street + ", ";
                 }
 
-                // fullAddress ഒബ്‌ജക്റ്റിലെ വിവരങ്ങൾ
+                // Screenshot 161515.png പ്രകാരം ബാക്കി വിവരങ്ങൾ fullAddress-നുള്ളിലാണ്
                 if (userData.fullAddress) {
-                    const addr = userData.fullAddress;
-                    const landmark = addr.landmark || '';
-                    const city = addr.city || '';
-                    const pincode = addr.pincode || '';
+                    const addrParts = userData.fullAddress;
+                    const landmark = addrParts.landmark || '';
+                    const city = addrParts.city || '';
+                    const pincode = addrParts.pincode || '';
                     
-                    finalAddress += `${landmark}${landmark ? ', ' : ''}${city}${city ? ', ' : ''}${pincode}`;
-                } else if (userData.address) {
-                    // അഥവാ പഴയ രീതിയിൽ നേരിട്ട് അഡ്രസ്സ് ഉണ്ടെങ്കിൽ
-                    finalAddress += userData.address;
+                    fullAddrText += `${landmark}${landmark ? ', ' : ''}${city}${city ? ', ' : ''}${pincode}`;
                 }
 
-                document.getElementById('custAddr').value = finalAddress.trim();
+                document.getElementById('custAddr').value = fullAddrText.trim();
             }
         }, { onlyOnce: true });
     });
@@ -182,7 +179,6 @@
                 <div style="text-align:center">
                     <p>Pay <b>₹${amount}</b> using any UPI App</p>
                     <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
-                    <p style="font-size:11px; color:#666;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
