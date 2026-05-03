@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="3" placeholder="House/Flat No, Landmark, Pincode..."></textarea>
+        <textarea id="custAddr" rows="3" placeholder="Street, Landmark, City, Pincode..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -84,7 +84,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Email Service
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -103,47 +102,46 @@
             .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
     }
 
-    // ലോഡിംഗ് ലോജിക്
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
         const img = localStorage.getItem('checkout_img');
-        const userMob = localStorage.getItem('userMob'); // ലോഗിൻ ചെയ്യാൻ ഉപയോഗിച്ച നമ്പർ
+        const userMob = localStorage.getItem('userMob');
 
         if(!name || !userMob) {
             Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
             return;
         }
 
-        // പ്രാഥമിക സെറ്റിംഗ്സ്
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
 
-        // പ്രൊഫൈലിൽ നിന്ന് വിവരങ്ങൾ സിങ്ക് ചെയ്യുന്നു
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // 1. പേര് നൽകുന്നു (key: name)
                 if (userData.name) {
                     document.getElementById('custName').value = userData.name;
                 }
 
-                // 2. മൊബൈൽ നമ്പർ സിങ്ക് ചെയ്യുന്നു (key: phone)
-                // സ്ക്രീൻഷോട്ട് പ്രകാരം പ്രൊഫൈലിലെ നമ്പർ 'phone' എന്ന കീയിലാണ്.
+                // ഫോൺ നമ്പർ സിങ്ക് ചെയ്യുന്നു (key: phone)
                 if (userData.phone) {
                     document.getElementById('custMob').value = userData.phone;
-                } else if (userData.mob) {
-                    document.getElementById('custMob').value = userData.mob;
                 }
 
-                // 3. അഡ്രസ്സ് സിങ്ക് ചെയ്യുന്നു (key: fullAddress object)
+                // അഡ്രസ്സ് സിങ്ക് ചെയ്യുന്നു
                 if (userData.fullAddress) {
                     const addr = userData.fullAddress;
-                    const formattedAddress = `${addr.landmark || ''}, ${addr.city || ''}, ${addr.pincode || ''}`;
-                    document.getElementById('custAddr').value = formattedAddress;
+                    // 'street' കീ കൂടി ഉൾപ്പെടുത്തി അഡ്രസ്സ് ഫോർമാറ്റ് ചെയ്യുന്നു
+                    const street = userData.street || ''; 
+                    const landmark = addr.landmark || '';
+                    const city = addr.city || '';
+                    const pincode = addr.pincode || '';
+                    
+                    const formattedAddress = `${street}${street ? ', ' : ''}${landmark}${landmark ? ', ' : ''}${city}${city ? ', ' : ''}${pincode}`;
+                    document.getElementById('custAddr').value = formattedAddress.trim();
                 }
             }
         }, { onlyOnce: true });
@@ -169,7 +167,6 @@
                 <div style="text-align:center">
                     <p>Pay <b>₹${amount}</b> using any UPI App</p>
                     <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
-                    <p style="font-size:11px; color:#666;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
