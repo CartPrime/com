@@ -50,7 +50,7 @@
     
     <div class="form-group">
         <label>Mobile Number</label>
-        <input type="number" id="custMob" readonly style="background: #f9f9f9; color: #888;">
+        <input type="number" id="custMob" placeholder="Contact number">
     </div>
 
     <div class="form-group">
@@ -84,7 +84,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Email അയക്കാനുള്ള ഫംഗ്ഷൻ
+    // Email Service
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -100,63 +100,55 @@
         };
 
         emailjs.send(serviceID, templateID, emailParams)
-            .then(() => {
-                console.log("Email sent successfully!");
-            }, (err) => {
-                console.error("Email Error:", err);
-            });
+            .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
     }
 
-    // പേജ് ലോഡ് ആകുമ്പോൾ പ്രൊഡക്റ്റും അഡ്രസ്സും സെറ്റ് ചെയ്യുക
+    // ലോഡിംഗ് ലോജിക്
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
         const img = localStorage.getItem('checkout_img');
         const userMob = localStorage.getItem('userMob');
-        const userName = localStorage.getItem('userName');
 
         if(!name || !userMob) {
             Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
             return;
         }
 
-        // Product UI അപ്‌ഡേറ്റ്
+        // പ്രാഥമിക സെറ്റിംഗ്സ്
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
-        
-        if(userName) {
-            document.getElementById('custName').value = userName;
-        }
 
-        // --- പ്രൊഫൈലിൽ നിന്ന് ഓട്ടോമാറ്റിക് ആയി അഡ്രസ് എടുക്കുന്നു ---
+        // പ്രൊഫൈലിൽ നിന്ന് വിവരങ്ങൾ തത്സമയം സിങ്ക് ചെയ്യുന്നു
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // പ്രൊഫൈലിൽ അഡ്രസ് സേവ് ചെയ്തിട്ടുണ്ടെങ്കിൽ അത് ഇവിടെ കാണിക്കും
-                if (userData.address) {
-                    document.getElementById('custAddr').value = userData.address;
+                // കീ 'fullAddress' ആണെന്ന് ഉറപ്പുവരുത്തി
+                if (userData.fullAddress) {
+                    document.getElementById('custAddr').value = userData.fullAddress;
                 }
-                // പേര് ഡാറ്റാബേസിൽ ഉണ്ടെങ്കിൽ അത് എടുക്കും
                 if (userData.name) {
                     document.getElementById('custName').value = userData.name;
                 }
+                // പ്രൊഫൈലിൽ അപ്‌ഡേറ്റ് ചെയ്ത നമ്പർ ഉണ്ടെങ്കിൽ അത് വരും
+                if (userData.mobile || userData.mob) {
+                    document.getElementById('custMob').value = userData.mobile || userData.mob;
+                }
             }
-        }, {
-            onlyOnce: true
-        });
+        }, { onlyOnce: true });
     });
 
     window.handlePayment = () => {
         const name = document.getElementById('custName').value.trim();
         const addr = document.getElementById('custAddr').value.trim();
-        const mob = document.getElementById('custMob').value;
+        const mob = document.getElementById('custMob').value.trim();
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
 
-        if(!name || !addr) {
-            return Swal.fire("Empty Fields", "Please fill Name and Address", "warning");
+        if(!name || !addr || !mob) {
+            return Swal.fire("Required", "Please fill all fields", "warning");
         }
 
         const myUpiId = "9778722796@fam"; 
@@ -164,25 +156,23 @@
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
 
         Swal.fire({
-            title: 'Confirm Payment',
+            title: 'Secure Payment',
             html: `
                 <div style="text-align:center">
-                    <p>Click <b>Pay Now</b> to open UPI apps or Scan QR</p>
+                    <p>Pay <b>₹${amount}</b> using any UPI App</p>
                     <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
-                    <p style="font-size:12px; color:red;">Pay ₹${amount} and come back here</p>
+                    <p style="font-size:11px; color:#666;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
-            confirmButtonText: 'Pay Now (Open Apps)',
+            confirmButtonText: 'Pay Now (Open UPI)',
             confirmButtonColor: '#28a745',
-            cancelButtonText: 'I Have Paid',
+            cancelButtonText: 'Already Paid',
             cancelButtonColor: '#1a1a2e'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = upiLink;
-                setTimeout(() => {
-                    checkFinalConfirmation(name, addr, mob, amount);
-                }, 3000);
+                setTimeout(() => checkFinalConfirmation(name, addr, mob, amount), 3000);
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 saveOrder(name, addr, mob, amount);
             }
@@ -192,14 +182,12 @@
     function checkFinalConfirmation(name, addr, mob, amount) {
         Swal.fire({
             title: 'Payment Status',
-            text: "Did you complete the payment?",
+            text: "Did you finish the payment?",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Place Order',
-            cancelButtonText: 'No, Try Again'
-        }).then((res) => {
-            if(res.isConfirmed) saveOrder(name, addr, mob, amount);
-        });
+            confirmButtonText: 'Yes, Done',
+            cancelButtonText: 'Not Yet'
+        }).then((res) => { if(res.isConfirmed) saveOrder(name, addr, mob, amount); });
     }
 
     function saveOrder(name, addr, mob, amount) {
@@ -214,7 +202,7 @@
             userName: name,
             userMob: mob,
             address: addr,
-            payment: "UPI (Pending Verification)",
+            payment: "UPI (Pending)",
             status: "Pending",
             returnPolicy: policy,
             orderDate: new Date().toLocaleString()
@@ -225,17 +213,9 @@
         
         set(newOrderRef, orderData).then(() => {
             sendOrderEmail(orderData);
-
-            Swal.fire({
-                title: "Order Placed!",
-                text: "Order placed successfully! You will receive an update soon.",
-                icon: "success"
-            }).then(() => {
-                window.location.href = "orders.html";
-            });
-        }).catch((err) => {
-            Swal.fire("Error", "Order Not Saved. Try again.", "error");
-        });
+            Swal.fire("Success", "Order Placed Successfully!", "success")
+                .then(() => window.location.href = "orders.html");
+        }).catch(() => Swal.fire("Error", "Could not save order", "error"));
     }
 </script>
 </body>
