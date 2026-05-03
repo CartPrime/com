@@ -84,6 +84,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    // EmailJS initialize cheyyaanulla bhagam
+(function() {
+    emailjs.init("-DWvIonAVTeMsNapk"); // Ivide ningalude Public Key kodukkuka
+})();
 
     // ഇമെയിൽ അയക്കാനുള്ള ഫങ്ക്ഷൻ
     function sendOrderEmail(orderData) {
