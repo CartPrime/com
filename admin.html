@@ -110,7 +110,7 @@
         <h2>Inventory</h2>
         <div style="overflow-x: auto;">
             <table>
-                <thead><tr><th>Img</th><th>Name</th><th>Display</th><th>Action</th></tr></thead>
+                <thead><tr><th>Img</th><th>Name & Status</th><th>Display</th><th>Action</th></tr></thead>
                 <tbody id="manageProductList"></tbody>
             </table>
         </div>
@@ -172,31 +172,53 @@
         push(ref(db, 'products'), {
             name, price, images: links,
             returnPolicy: returnPolicy,
+            outOfStock: false, // Default is in stock
             showOnHome: document.getElementById('showHome').checked,
             showOnAll: document.getElementById('showAll').checked,
         }).then(() => { Swal.fire('Saved!','Product added','success'); location.reload(); });
     };
 
+    // --- Manage Products with Stock Status ---
     onValue(ref(db, 'products'), snap => {
         const list = document.getElementById('manageProductList');
         list.innerHTML = "";
         snap.forEach(c => {
             const p = c.val();
             const firstImg = p.images && p.images.length > 0 ? p.images[0] : 'https://via.placeholder.com/40';
+            const isOutOfStock = p.outOfStock === true;
+
             list.innerHTML += `<tr>
                 <td><img src="${firstImg}" style="width:40px; height:40px; object-fit:cover; border-radius:5px"></td>
-                <td><b>${p.name}</b><br>₹${p.price}</td>
+                <td>
+                    <b>${p.name}</b><br>₹${p.price}
+                    ${isOutOfStock ? '<br><span class="badge" style="background:#e74c3c">OUT OF STOCK</span>' : ''}
+                </td>
                 <td>
                     ${p.showOnHome ? '<span class="badge" style="background:#2ecc71">HOME</span>':''}
                     ${p.showOnAll ? '<span class="badge" style="background:#3498db">ALL</span>':''}
                 </td>
                 <td>
+                    <button class="action-btn" style="background:${isOutOfStock ? '#2ecc71' : '#f39c12'}" 
+                        onclick="toggleStock('${c.key}', ${isOutOfStock})">
+                        ${isOutOfStock ? 'In Stock' : 'Out Stock'}
+                    </button>
                     <button class="action-btn" style="background:#3498db" onclick="editProduct('${c.key}')">Edit</button>
                     <button class="action-btn" style="background:#95a5a6" onclick="deleteItem('products/${c.key}')">Del</button>
                 </td>
             </tr>`;
         });
     });
+
+    window.toggleStock = (id, currentStatus) => {
+        update(ref(db, 'products/' + id), { outOfStock: !currentStatus })
+        .then(() => {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'success', 
+                title: !currentStatus ? 'Marked Out of Stock' : 'Back in Stock',
+                showConfirmButton: false, timer: 1500
+            });
+        });
+    };
 
     window.editProduct = async (id) => {
         const snap = await get(child(ref(db), `products/${id}`));
@@ -220,7 +242,7 @@
         if (v) update(ref(db, 'products/' + id), v);
     };
 
-    // --- Order Management with Delivered Button ---
+    // --- Order Management ---
     onValue(ref(db, 'orders'), snap => {
         const list = document.getElementById('orderList');
         list.innerHTML = "";
@@ -228,8 +250,7 @@
             const o = c.val();
             const status = o.status || 'Pending';
             
-            // Status colors
-            let statusColor = '#f39c12'; // Default Pending
+            let statusColor = '#f39c12';
             if(status === 'Confirmed') statusColor = '#2ecc71';
             if(status === 'Delivered') statusColor = '#3498db';
             if(status === 'Rejected') statusColor = '#e74c3c';
