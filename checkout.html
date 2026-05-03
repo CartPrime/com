@@ -9,7 +9,6 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-            // നിങ്ങളുടെ EmailJS Public Key ഇവിടെ നൽകുക
             emailjs.init("-DWvIonAVTeMsNapk"); 
         })();
     </script>
@@ -85,10 +84,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ഇമെയിൽ അയക്കാനുള്ള ഫങ്ക്ഷൻ
     function sendOrderEmail(orderData) {
-        const serviceID = "service_yvljbw9"; // നിങ്ങളുടെ EmailJS Service ID
-        const templateID = "template_1kwylx7"; // നിങ്ങളുടെ EmailJS Template ID
+        const serviceID = "service_yvljbw9"; 
+        const templateID = "template_1kwylx7"; 
 
         const emailParams = {
             to_email: "cartprimeshopping@gmail.com",
@@ -186,6 +184,9 @@
     function saveOrder(name, addr, mob, amount) {
         Swal.showLoading();
         const pName = document.getElementById('pName').innerText;
+        
+        // ലോക്കൽ സ്റ്റോറേജിൽ നിന്ന് റിട്ടേൺ പോളിസി എടുക്കുന്നു
+        const policy = localStorage.getItem('checkout_return_policy') || "Standard";
 
         const orderData = {
             checkout_name: pName,
@@ -196,6 +197,7 @@
             address: addr,
             payment: "UPI (Pending Verification)",
             status: "Pending",
+            returnPolicy: policy, // ഇതാണ് പ്രധാനപ്പെട്ട മാറ്റം
             orderDate: new Date().toLocaleString()
         };
 
@@ -203,7 +205,6 @@
         const newOrderRef = push(ordersRef);
         
         set(newOrderRef, orderData).then(() => {
-            // ഇമെയിൽ അയക്കുന്നു
             sendOrderEmail(orderData);
 
             Swal.fire({
