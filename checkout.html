@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="4" placeholder="House/Street, Landmark, City, Pincode..."></textarea>
+        <textarea id="custAddr" rows="5" placeholder="Address will load automatically..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -131,23 +131,27 @@
                     document.getElementById('custName').value = userData.name;
                 }
 
-                // 2. പുതിയ ഫോൺ നമ്പർ ഉണ്ടെങ്കിൽ അത് ലോഡ് ചെയ്യുന്നു
+                // 2. മൊബൈൽ നമ്പർ സിങ്ക് ചെയ്യുന്നു
                 if (userData.phone) {
                     document.getElementById('custMob').value = userData.phone;
                 }
 
-                // 3. അഡ്രസ്സ് ലോജിക് (Street + Landmark + City + Pincode)
+                // 3. അഡ്രസ്സ് ഫോർമാറ്റിംഗ് (സ്ക്രീൻഷോട്ടിലെ പോലെ)
                 let addrParts = [];
 
-                // Screenshot 165157.png പ്രകാരം street കീ നേരിട്ട് യൂസറിന് താഴെയാണ്
+                // Ellumparambil Kaipamgalam (street key)
                 if (userData.street) {
                     addrParts.push(userData.street);
                 }
 
-                // fullAddress ഒബ്‌ജക്റ്റിലെ വിവരങ്ങൾ
+                // fullAddress-നുള്ളിലെ വിവരങ്ങൾ
                 if (userData.fullAddress) {
                     const fa = userData.fullAddress;
+                    // Chalingad Kozhithumb road Valiyapali (landmark അല്ലെങ്കിൽ area)
                     if (fa.landmark) addrParts.push(fa.landmark);
+                    if (fa.area) addrParts.push(fa.area); 
+                    
+                    // thrissur, 680681
                     if (fa.city) addrParts.push(fa.city);
                     if (fa.pincode) addrParts.push(fa.pincode);
                 }
