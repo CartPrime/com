@@ -4,88 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details - Cart Prime</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #f4f7f6; padding: 15px; }
-        
-        .container { 
-            max-width: 1100px; 
-            margin: 20px auto; 
-            background: white; 
-            display: flex; 
-            flex-wrap: wrap; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-        
-        /* Image Section */
-        .image-section { 
-            flex: 1.2; min-width: 350px; padding: 30px; background: #fff;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        
-        .main-img-container { 
-            width: 100%; height: 400px; display: flex; align-items: center;
-            justify-content: center; border-radius: 15px; background: #f9f9f9;
-        }
-        
+        .container { max-width: 1100px; margin: 20px auto; background: white; display: flex; flex-wrap: wrap; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
+        .image-section { flex: 1.2; min-width: 350px; padding: 30px; background: #fff; display: flex; flex-direction: column; align-items: center; }
+        .main-img-container { width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 15px; background: #f9f9f9; }
         #mainImg { max-width: 100%; max-height: 100%; object-fit: contain; }
-        
-        .thumb-container { 
-            display: flex; gap: 12px; justify-content: center; margin-top: 20px; 
-            width: 100%; overflow-x: auto; padding: 10px 5px;
-        }
-        
-        .thumb-img { 
-            width: 70px; height: 70px; object-fit: cover; border: 2px solid #eee; 
-            border-radius: 10px; cursor: pointer; transition: 0.2s; flex-shrink: 0;
-        }
-        
+        .thumb-container { display: flex; gap: 12px; justify-content: center; margin-top: 20px; width: 100%; overflow-x: auto; padding: 10px 5px; }
+        .thumb-img { width: 70px; height: 70px; object-fit: cover; border: 2px solid #eee; border-radius: 10px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .thumb-img:hover, .thumb-img.active { border-color: #ff9900; transform: translateY(-3px); }
-
-        /* Info Section */
         .info-section { flex: 1; min-width: 320px; padding: 40px; display: flex; flex-direction: column; }
         .info-section h1 { font-size: 32px; margin-bottom: 10px; color: #333; }
         .price { font-size: 28px; color: #28a745; font-weight: bold; margin-bottom: 20px; }
         .desc { color: #666; line-height: 1.7; margin-bottom: 20px; font-size: 16px; }
-        
-        .policy-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        .policy-item {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #eee;
-        }
-
+        .policy-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+        .policy-item { background: #f8f9fa; padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid #eee; }
         .policy-item i { color: #ff9900; font-size: 18px; }
         .policy-item span { font-size: 13px; font-weight: 600; color: #444; }
-
-        .shipping-info {
-            background: #fff5e6; padding: 15px; border-radius: 10px;
-            border-left: 5px solid #ff9900; margin-bottom: 30px;
-        }
+        .shipping-info { background: #fff5e6; padding: 15px; border-radius: 10px; border-left: 5px solid #ff9900; margin-bottom: 30px; }
         .shipping-info p { color: #a72828; font-weight: 600; font-size: 14px; }
-
-        .buy-now { 
-            background: #ff9900; color: white; width: 100%; padding: 18px; 
-            border: none; border-radius: 12px; font-weight: 800; cursor: pointer; 
-            font-size: 18px; text-transform: uppercase; transition: 0.3s; margin-top: auto; 
-        }
-        
+        .buy-now { background: #ff9900; color: white; width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; margin-top: auto; }
         .buy-now:hover { background: #e68a00; transform: translateY(-2px); }
         .back-link { text-decoration: none; color: #666; font-weight: 600; display: inline-block; margin-bottom: 20px; }
-        
         @media (max-width: 768px) { .container { flex-direction: column; } .buy-now { margin-top: 25px; } }
     </style>
 </head>
@@ -139,7 +82,6 @@
         const desc = localStorage.getItem('viewProdDesc');
         const returnPeriod = localStorage.getItem('viewProdReturn') || "7 Days";
         
-        // Image Data കൈകാര്യം ചെയ്യുന്ന പുതിയ രീതി
         let imgData = localStorage.getItem('viewProdImg') || "";
 
         document.getElementById('pName').innerText = name || "Product Name";
@@ -152,8 +94,6 @@
 
         if (imgData) {
             let images = [];
-            
-            // Image data JSON ആണോ അതോ കോമ ഉള്ള string ആണോ എന്ന് നോക്കുന്നു
             try {
                 images = JSON.parse(imgData);
                 if(!Array.isArray(images)) images = [imgData];
@@ -163,24 +103,19 @@
 
             if (images.length > 0) {
                 mainImg.src = images[0];
-                thumbContainer.innerHTML = ""; // പഴയവ ക്ലിയർ ചെയ്യുന്നു
-
+                thumbContainer.innerHTML = "";
                 images.forEach((url, index) => {
                     if(url) {
                         const imgTag = document.createElement('img');
                         imgTag.src = url;
                         imgTag.classList.add('thumb-img');
                         if(index === 0) imgTag.classList.add('active');
-                        
                         imgTag.onclick = () => {
                             mainImg.src = url;
                             document.querySelectorAll('.thumb-img').forEach(i => i.classList.remove('active'));
                             imgTag.classList.add('active');
                         };
-
-                        // ലോഡ് ആയില്ലെങ്കിൽ തമ്പ്നെയിൽ ഹൈഡ് ചെയ്യും
                         imgTag.onerror = () => { imgTag.style.display = 'none'; };
-                        
                         thumbContainer.appendChild(imgTag);
                     }
                 });
@@ -190,9 +125,12 @@
         }
 
         function proceedToCheckout() {
-            localStorage.setItem('tempProdName', name);
-            localStorage.setItem('tempProdPrice', price);
-            localStorage.setItem('tempProdImg', mainImg.src); 
+            // ശരിയായ കീ ഉപയോഗിച്ച് ഡാറ്റ സേവ് ചെയ്യുന്നു
+            localStorage.setItem('checkout_name', name);
+            localStorage.setItem('checkout_price', price);
+            localStorage.setItem('checkout_img', mainImg.src); 
+            localStorage.setItem('checkout_return_policy', returnPeriod); // ഇത് പ്രധാനമാണ്
+            
             window.location.href = 'checkout.html';
         }
     </script>
