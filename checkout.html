@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
-        (function() {
-            emailjs.init("-DWvIonAVTeMsNapk"); 
-        })();
+        (function() { emailjs.init("-DWvIonAVTeMsNapk"); })();
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -27,7 +25,6 @@
         .form-group input:focus { border-color: #ff9900; box-shadow: 0 0 8px rgba(255, 153, 0, 0.2); outline: none; }
         .payment-status { background: #e8f5e9; padding: 12px; border-radius: 10px; color: #2e7d32; display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 20px; font-size: 14px; }
         .btn-pay { background: #1a1a2e; color: #ff9900; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .btn-pay:hover { background: #252545; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -38,14 +35,14 @@
     <div class="order-box">
         <img id="pImg" src="https://via.placeholder.com/70" alt="Product">
         <div class="order-info">
-            <b id="pName">Loading Product...</b>
+            <b id="pName">Loading...</b>
             <span id="pPrice">₹0.00</span>
         </div>
     </div>
 
     <div class="form-group">
         <label>Delivery Name</label>
-        <input type="text" id="custName" placeholder="Full name of receiver">
+        <input type="text" id="custName" placeholder="Full name">
     </div>
     
     <div class="form-group">
@@ -55,12 +52,11 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="5" placeholder="Loading delivery address..."></textarea>
+        <textarea id="custAddr" rows="5" placeholder="Loading address..."></textarea>
     </div>
 
     <div class="payment-status">
-        <i class="fas fa-check-circle"></i>
-        Only UPI Payment Accepted (Safe & Fast)
+        <i class="fas fa-check-circle"></i> Only UPI Accepted
     </div>
 
     <button class="btn-pay" onclick="handlePayment()">
@@ -72,7 +68,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAGkPzKBoH5BGsALtEGVyn41hPk1mL__1w",
         authDomain: "yoush0pcart.firebaseapp.com",
@@ -85,25 +80,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Email logic
-    function sendOrderEmail(orderData) {
-        const serviceID = "service_yvljbw9"; 
-        const templateID = "template_1kwylx7"; 
-
-        const emailParams = {
-            to_email: "cartprimeshopping@gmail.com",
-            customer_name: orderData.userName,
-            customer_mob: orderData.userMob,
-            product_name: orderData.checkout_name,
-            amount: orderData.checkout_price,
-            address: orderData.address,
-            order_date: orderData.orderDate
-        };
-
-        emailjs.send(serviceID, templateID, emailParams)
-            .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
@@ -111,62 +87,36 @@
         const userMob = localStorage.getItem('userMob');
 
         if(!name || !userMob) {
-            Swal.fire("Session Expired", "Please select product again.", "error").then(()=> window.location.href="index.html");
+            window.location.href="index.html";
             return;
         }
 
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
-        document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
+        document.getElementById('pImg').src = img;
         document.getElementById('custMob').value = userMob;
 
-        // Fetch User Data from Firebase
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
-                
                 if (userData.name) document.getElementById('custName').value = userData.name;
-                if (userData.phone) document.getElementById('custMob').value = userData.phone;
-
+                
                 let addrParts = [];
-
-                // Screenshot 171244.png പ്രകാരം street, landmark എന്നിവ fullAddress ഉള്ളിലാണ്
                 if (userData.fullAddress) {
                     const fa = userData.fullAddress;
-                    
-                    // 1. Street (Ellumparambil Kaipamgalam)
                     if (fa.street) addrParts.push(fa.street);
-
-                    // 2. Landmark (Chalingad Kozhithumb road Valiyapali)
                     if (fa.landmark) addrParts.push(fa.landmark);
-                    else if (fa.area) addrParts.push(fa.area); 
-                    
-                    // 3. City & Pincode
                     if (fa.city) addrParts.push(fa.city);
                     if (fa.pincode) addrParts.push(fa.pincode);
                 }
-
-                // ടെക്സ്റ്റ് ഏരിയയിലേക്ക് മാറ്റുന്നു
-                if (addrParts.length > 0) {
-                    document.getElementById('custAddr').value = addrParts.join(", ");
-                } else if (userData.address) {
-                    document.getElementById('custAddr').value = userData.address;
-                }
+                if (addrParts.length > 0) document.getElementById('custAddr').value = addrParts.join(", ");
             }
         }, { onlyOnce: true });
     });
 
     window.handlePayment = () => {
-        const name = document.getElementById('custName').value.trim();
-        const addr = document.getElementById('custAddr').value.trim();
-        const mob = document.getElementById('custMob').value.trim();
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
-
-        if(!name || !addr || !mob) {
-            return Swal.fire("Required", "Please fill all fields", "warning");
-        }
-
         const myUpiId = "9778722796@fam"; 
         const upiLink = `upi://pay?pa=${myUpiId}&pn=Cart Prime&am=${amount}&cu=INR`;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
@@ -175,62 +125,53 @@
             title: 'Secure Payment',
             html: `
                 <div style="text-align:center">
-                    <p>Pay <b>₹${amount}</b> using any UPI App</p>
-                    <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
+                    <p style="color: red; font-weight: bold; font-size: 13px; margin-bottom: 10px;">
+                        ⚠️ Please pay exactly ₹${amount} to confirm your order.
+                    </p>
+                    <img src="${qrUrl}" style="width:150px; margin-bottom:10px; border:1px solid #ddd;">
+                    <p style="font-size:12px;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
-            confirmButtonText: 'Pay Now (Open UPI)',
-            confirmButtonColor: '#28a745',
-            cancelButtonText: 'Already Paid',
-            cancelButtonColor: '#1a1a2e'
+            confirmButtonText: 'Pay Now',
+            cancelButtonText: 'Already Paid'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = upiLink;
-                setTimeout(() => checkFinalConfirmation(name, addr, mob, amount), 3000);
+                setTimeout(() => confirmOrderSave(), 3000);
             } else if (result.dismiss === Swal.DismissReason.cancel) {
-                saveOrder(name, addr, mob, amount);
+                confirmOrderSave();
             }
         });
     };
 
-    function checkFinalConfirmation(name, addr, mob, amount) {
-        Swal.fire({
-            title: 'Payment Status',
-            text: "Did you finish the payment?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Done',
-            cancelButtonText: 'Not Yet'
-        }).then((res) => { if(res.isConfirmed) saveOrder(name, addr, mob, amount); });
-    }
+    function confirmOrderSave() {
+        const name = document.getElementById('custName').value;
+        const addr = document.getElementById('custAddr').value;
+        const mob = document.getElementById('custMob').value;
+        const amount = document.getElementById('pPrice').innerText;
 
-    function saveOrder(name, addr, mob, amount) {
         Swal.showLoading();
-        const pName = document.getElementById('pName').innerText;
-        const policy = localStorage.getItem('checkout_return_policy') || "Standard";
-
+        
         const orderData = {
-            checkout_name: pName,
+            checkout_name: document.getElementById('pName').innerText,
             checkout_price: amount,
             checkout_img: document.getElementById('pImg').src,
             userName: name,
             userMob: mob,
             address: addr,
-            payment: "UPI (Pending)",
             status: "Pending",
-            returnPolicy: policy,
             orderDate: new Date().toLocaleString()
         };
 
-        const ordersRef = ref(db, 'orders');
-        const newOrderRef = push(ordersRef);
+        // ഓർഡർ ലിസ്റ്റിൽ കാണാൻ 'orders/USER_MOB' എന്ന പാത്തിൽ സേവ് ചെയ്യുന്നു
+        const userMob = localStorage.getItem('userMob');
+        const orderRef = push(ref(db, 'orders/' + userMob));
         
-        set(newOrderRef, orderData).then(() => {
-            sendOrderEmail(orderData);
-            Swal.fire("Success", "Order Placed Successfully!", "success")
+        set(orderRef, orderData).then(() => {
+            Swal.fire("Success", "Order Placed!", "success")
                 .then(() => window.location.href = "orders.html");
-        }).catch(() => Swal.fire("Error", "Could not save order", "error"));
+        });
     }
 </script>
 </body>
