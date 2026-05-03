@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="4" placeholder="Street, Landmark, City, Pincode..."></textarea>
+        <textarea id="custAddr" rows="4" placeholder="House/Street, Landmark, City, Pincode..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -84,6 +84,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Email Service
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -102,6 +103,7 @@
             .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
     }
 
+    // ലോഡിംഗ് ലോജിക്
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
@@ -118,34 +120,44 @@
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
 
-        // തത്സമയ ഡാറ്റാ സിങ്കിംഗ്
+        // Firebase Real-time Data Sync
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                if (userData.name) document.getElementById('custName').value = userData.name;
-                if (userData.phone) document.getElementById('custMob').value = userData.phone;
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                
+                // 1. പേര് സിങ്ക് ചെയ്യുന്നു
+                if (userData.name) {
+                    document.getElementById('custName').value = userData.name;
+                }
 
-                // അഡ്രസ്സ് ഫോർമാറ്റിംഗ്
-                let combinedAddress = "";
+                // 2. പുതിയ ഫോൺ നമ്പർ ഉണ്ടെങ്കിൽ അത് ലോഡ് ചെയ്യുന്നു
+                if (userData.phone) {
+                    document.getElementById('custMob').value = userData.phone;
+                }
 
-                // സ്ട്രീറ്റ് വിവരം ഉണ്ടെങ്കിൽ ആദ്യം ചേർക്കുക (ഉദാ: Ellumparambil Kaipamgalam)
+                // 3. അഡ്രസ്സ് ലോജിക് (Street + Landmark + City + Pincode)
+                let addrParts = [];
+
+                // Screenshot 165157.png പ്രകാരം street കീ നേരിട്ട് യൂസറിന് താഴെയാണ്
                 if (userData.street) {
-                    combinedAddress += userData.street + "\n";
+                    addrParts.push(userData.street);
                 }
 
-                // ബാക്കി വിവരങ്ങൾ (landmark, city, pincode)
+                // fullAddress ഒബ്‌ജക്റ്റിലെ വിവരങ്ങൾ
                 if (userData.fullAddress) {
-                    const addr = userData.fullAddress;
-                    const parts = [];
-                    if (addr.landmark) parts.push(addr.landmark);
-                    if (addr.city) parts.push(addr.city);
-                    if (addr.pincode) parts.push(addr.pincode);
-                    
-                    combinedAddress += parts.join(", ");
+                    const fa = userData.fullAddress;
+                    if (fa.landmark) addrParts.push(fa.landmark);
+                    if (fa.city) addrParts.push(fa.city);
+                    if (fa.pincode) addrParts.push(fa.pincode);
                 }
 
-                document.getElementById('custAddr').value = combinedAddress.trim();
+                // അഡ്രസ് ബോക്സിൽ വാല്യൂ സെറ്റ് ചെയ്യുന്നു
+                if (addrParts.length > 0) {
+                    document.getElementById('custAddr').value = addrParts.join(", ");
+                } else if (userData.address) {
+                    document.getElementById('custAddr').value = userData.address;
+                }
             }
         }, { onlyOnce: true });
     });
@@ -170,6 +182,7 @@
                 <div style="text-align:center">
                     <p>Pay <b>₹${amount}</b> using any UPI App</p>
                     <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
+                    <p style="font-size:11px; color:#666;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
