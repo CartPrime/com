@@ -16,7 +16,6 @@
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
         
-        /* Status Colors */
         .status-pending { background: #fff3cd; color: #856404; }
         .status-confirmed { background: #d1e7dd; color: #0f5132; }
         .status-delivered { background: #d1e7dd; color: #0f5132; }
@@ -34,8 +33,6 @@
         
         .no-orders { text-align: center; padding: 40px; color: #999; }
         .nav-home { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #1a1a2e; font-weight: bold; }
-
-        /* Success Message Styling */
         .success-msg { color: #0f5132; background: #d1e7dd; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; font-size: 13px; border: 1px solid #badbcc; }
     </style>
 </head>
@@ -122,13 +119,24 @@
                         statusClass = "status-delivered";
                         tickMark = `<i class="fas fa-check-circle"></i>`;
                         
-                        // മാറ്റം വരുത്തിയ ഭാഗം: Return Policy ചെക്ക് ചെയ്യുന്നു
-                        const policy = order.returnPolicy || ""; 
-                        if (policy === "No Return") {
+                        // --- 7 DAYS RETURN LOGIC ---
+                        const policy = (order.returnPolicy || "").trim();
+                        const deliveryDateStr = order.deliveryDate || order.orderDate; 
+                        const deliveryDate = new Date(deliveryDateStr);
+                        const currentDate = new Date();
+                        
+                        // തീയതികൾ തമ്മിലുള്ള വ്യത്യാസം കണ്ടുപിടിക്കുന്നു
+                        const diffTime = Math.abs(currentDate - deliveryDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                        // "No Return" ആണെങ്കിലോ 7 ദിവസത്തിൽ കൂടുതൽ ആയാലോ ബട്ടൺ കാണിക്കില്ല
+                        if (policy === "No Return" || diffDays > 7) {
                             actionBtnHTML = `<div class="success-msg"><i class="fas fa-check-double"></i> Your Order is Successful</div>`;
                         } else {
                             actionBtnHTML = `<button class="action-btn return-btn" onclick="returnOrder('${orderId}')">Return Product</button>`;
                         }
+                        // ----------------------------
+
                     } else if (lowerStatus === "shipped") {
                         statusClass = "status-shipped";
                         tickMark = `<i class="fas fa-truck"></i>`;
