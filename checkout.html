@@ -84,7 +84,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Email Service
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -103,7 +102,6 @@
             .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
     }
 
-    // ലോഡിംഗ് ലോജിക്
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
@@ -115,27 +113,34 @@
             return;
         }
 
-        // പ്രാഥമിക സെറ്റിംഗ്സ്
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
 
-        // പ്രൊഫൈലിൽ നിന്ന് വിവരങ്ങൾ തത്സമയം സിങ്ക് ചെയ്യുന്നു
+        // Firebase-ൽ നിന്ന് തത്സമയം പ്രൊഫൈൽ സിങ്ക് ചെയ്യുന്നു
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // കീ 'fullAddress' ആണെന്ന് ഉറപ്പുവരുത്തി
-                if (userData.fullAddress) {
-                    document.getElementById('custAddr').value = userData.fullAddress;
-                }
+                // 1. പേര് നൽകുന്നു
                 if (userData.name) {
                     document.getElementById('custName').value = userData.name;
                 }
-                // പ്രൊഫൈലിൽ അപ്‌ഡേറ്റ് ചെയ്ത നമ്പർ ഉണ്ടെങ്കിൽ അത് വരും
-                if (userData.mobile || userData.mob) {
-                    document.getElementById('custMob').value = userData.mobile || userData.mob;
+
+                // 2. fullAddress ഒബ്‌ജക്റ്റിലെ വിവരങ്ങൾ കൂട്ടി യോജിപ്പിക്കുന്നു (Based on Screenshot 2026-05-03 161515.png)
+                if (userData.fullAddress) {
+                    const addr = userData.fullAddress;
+                    const city = addr.city || '';
+                    const landmark = addr.landmark || '';
+                    const pincode = addr.pincode || '';
+                    
+                    // അഡ്രസ്സ് ഫോർമാറ്റ് ചെയ്യുന്നു
+                    const formattedAddress = `${landmark}, ${city}, ${pincode}`;
+                    document.getElementById('custAddr').value = formattedAddress;
+                } else if (userData.address) {
+                    // നേരിട്ട് അഡ്രസ്സ് ഉണ്ടെങ്കിൽ അത് എടുക്കുന്നു
+                    document.getElementById('custAddr').value = userData.address;
                 }
             }
         }, { onlyOnce: true });
@@ -161,7 +166,6 @@
                 <div style="text-align:center">
                     <p>Pay <b>₹${amount}</b> using any UPI App</p>
                     <img src="${qrUrl}" style="width:150px; margin:15px 0; border:5px solid #eee;">
-                    <p style="font-size:11px; color:#666;">Scan QR or click Pay Now</p>
                 </div>
             `,
             showCancelButton: true,
