@@ -55,7 +55,7 @@
 
     <div class="form-group">
         <label>Full Delivery Address</label>
-        <textarea id="custAddr" rows="3" placeholder="Street, Landmark, City, Pincode..."></textarea>
+        <textarea id="custAddr" rows="4" placeholder="Street, Landmark, City, Pincode..."></textarea>
     </div>
 
     <div class="payment-status">
@@ -84,7 +84,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Email Service
     function sendOrderEmail(orderData) {
         const serviceID = "service_yvljbw9"; 
         const templateID = "template_1kwylx7"; 
@@ -103,7 +102,6 @@
             .then(() => console.log("Email sent!"), (err) => console.error("Email Error:", err));
     }
 
-    // ലോഡിംഗ് ലോജിക്
     window.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('checkout_name');
         const price = localStorage.getItem('checkout_price');
@@ -115,46 +113,39 @@
             return;
         }
 
-        // പ്രാഥമിക വിവരങ്ങൾ
         document.getElementById('pName').innerText = name;
         document.getElementById('pPrice').innerText = "₹" + price;
         document.getElementById('pImg').src = img || 'https://via.placeholder.com/70';
         document.getElementById('custMob').value = userMob;
 
-        // Firebase-ൽ നിന്ന് വിവരങ്ങൾ തത്സമയം സിങ്ക് ചെയ്യുന്നു
+        // തത്സമയ ഡാറ്റാ സിങ്കിംഗ്
         const userRef = ref(db, 'users/' + userMob);
         onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // 1. പേര് സിങ്ക് ചെയ്യുന്നു
-                if (userData.name) {
-                    document.getElementById('custName').value = userData.name;
-                }
+                if (userData.name) document.getElementById('custName').value = userData.name;
+                if (userData.phone) document.getElementById('custMob').value = userData.phone;
 
-                // 2. മൊബൈൽ നമ്പർ സിങ്ക് ചെയ്യുന്നു (key: phone)
-                if (userData.phone) {
-                    document.getElementById('custMob').value = userData.phone;
-                }
+                // അഡ്രസ്സ് ഫോർമാറ്റിംഗ്
+                let combinedAddress = "";
 
-                // 3. സ്ട്രീറ്റ് ഉൾപ്പെടെയുള്ള അഡ്രസ്സ് ഫോർമാറ്റ് ചെയ്യുന്നു
-                let fullAddrText = "";
-                
-                // Screenshot 162331.png പ്രകാരം street കീ വെളിയിലാണ്
+                // സ്ട്രീറ്റ് വിവരം ഉണ്ടെങ്കിൽ ആദ്യം ചേർക്കുക (ഉദാ: Ellumparambil Kaipamgalam)
                 if (userData.street) {
-                    fullAddrText += userData.street + ", ";
+                    combinedAddress += userData.street + "\n";
                 }
 
-                // സ്ക്രീൻഷോട്ടുകൾ പ്രകാരം ബാക്കി വിവരങ്ങൾ fullAddress-നുള്ളിലാണ്
+                // ബാക്കി വിവരങ്ങൾ (landmark, city, pincode)
                 if (userData.fullAddress) {
-                    const addrParts = userData.fullAddress;
-                    const landmark = addrParts.landmark || '';
-                    const city = addrParts.city || '';
-                    const pincode = addrParts.pincode || '';
+                    const addr = userData.fullAddress;
+                    const parts = [];
+                    if (addr.landmark) parts.push(addr.landmark);
+                    if (addr.city) parts.push(addr.city);
+                    if (addr.pincode) parts.push(addr.pincode);
                     
-                    fullAddrText += `${landmark}${landmark ? ', ' : ''}${city}${city ? ', ' : ''}${pincode}`;
+                    combinedAddress += parts.join(", ");
                 }
 
-                document.getElementById('custAddr').value = fullAddrText.trim();
+                document.getElementById('custAddr').value = combinedAddress.trim();
             }
         }, { onlyOnce: true });
     });
