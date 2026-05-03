@@ -6,6 +6,13 @@
     <title>Cart Prime - Secure Checkout</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // നിങ്ങളുടെ EmailJS Public Key ഇവിടെ നൽകുക
+            emailjs.init("YOUR_PUBLIC_KEY"); 
+        })();
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f0f2f5; padding: 15px; color: #1a1a2e; }
@@ -22,8 +29,6 @@
         .payment-status { background: #e8f5e9; padding: 12px; border-radius: 10px; color: #2e7d32; display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 20px; font-size: 14px; }
         .btn-pay { background: #1a1a2e; color: #ff9900; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-pay:hover { background: #252545; transform: translateY(-2px); }
-        #qrModal { display: none; text-align: center; padding: 20px; }
-        .qr-img { width: 200px; height: 200px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -80,34 +85,27 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // OneSignal Notification Function
-    async function sendAdminNotification(orderName, amount) {
-        const appId = "12215d52-ff48-476d-8f20-08396274d66e"; 
-        const restApiKey = "os_v2_app_ciqv2ux7jbdw3dzaba4we5gwny4p5ogkbtpu5nug2fv6aspdinnvtg4daxzki3a7wlm6krmps5htntsfbfctu2lnx7isncusfmyzakq"; 
+    // ഇമെയിൽ അയക്കാനുള്ള ഫങ്ക്ഷൻ
+    function sendOrderEmail(orderData) {
+        const serviceID = "service_yvljbw9"; // നിങ്ങളുടെ EmailJS Service ID
+        const templateID = "template_1kwylx7"; // നിങ്ങളുടെ EmailJS Template ID
 
-        const headers = {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": "Basic " + restApiKey
+        const emailParams = {
+            to_email: "farhanulfaris22@gmail.com",
+            customer_name: orderData.userName,
+            customer_mob: orderData.userMob,
+            product_name: orderData.checkout_name,
+            amount: orderData.checkout_price,
+            address: orderData.address,
+            order_date: orderData.orderDate
         };
 
-        const data = {
-            app_id: appId,
-            included_segments: ["All"],
-            headings: { "en": "New Order Received! 🛍️" },
-            contents: { "en": `New order for ${orderName} of ₹${amount}` },
-            android_accent_color: "FF9900",
-            priority: 10
-        };
-
-        try {
-            await fetch("https://onesignal.com/api/v1/notifications", {
-                method: "POST",
-                headers: headers,
-                body: JSON.stringify(data)
+        emailjs.send(serviceID, templateID, emailParams)
+            .then(() => {
+                console.log("Email sent successfully!");
+            }, (err) => {
+                console.error("Email Error:", err);
             });
-        } catch (error) {
-            console.error("Notification Error:", error);
-        }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -139,7 +137,7 @@
         const amount = document.getElementById('pPrice').innerText.replace('₹','');
 
         if(!name || !addr) {
-            return Swal.fire("Empty Fields", "Name, Address type", "warning");
+            return Swal.fire("Empty Fields", "Please fill Name and Address", "warning");
         }
 
         const myUpiId = "9778722796@fam"; 
@@ -175,7 +173,7 @@
     function checkFinalConfirmation(name, addr, mob, amount) {
         Swal.fire({
             title: 'Payment Status',
-            text: "Your Order Confimed",
+            text: "Did you complete the payment?",
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Place Order',
@@ -187,7 +185,6 @@
 
     function saveOrder(name, addr, mob, amount) {
         Swal.showLoading();
-
         const pName = document.getElementById('pName').innerText;
 
         const orderData = {
@@ -206,18 +203,18 @@
         const newOrderRef = push(ordersRef);
         
         set(newOrderRef, orderData).then(() => {
-            // OneSignal Notification Call
-            sendAdminNotification(pName, amount);
+            // ഇമെയിൽ അയക്കുന്നു
+            sendOrderEmail(orderData);
 
             Swal.fire({
                 title: "Order Placed!",
-                text: "Order placed successfully! Your order will be shipped after verification.",
+                text: "Order placed successfully! You will receive an update soon.",
                 icon: "success"
             }).then(() => {
                 window.location.href = "orders.html";
             });
         }).catch((err) => {
-            Swal.fire("Error", "Order Not Save Try agin", "error");
+            Swal.fire("Error", "Order Not Saved. Try again.", "error");
         });
     }
 </script>
